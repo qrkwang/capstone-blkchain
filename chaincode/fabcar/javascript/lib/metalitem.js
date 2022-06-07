@@ -23,8 +23,8 @@ class MetalItem extends Contract {
     }
 
     async queryMetalItem(ctx, metalitemnumber) {
-        const carAsBytes = await ctx.stub.getState(metalitemnumber); // get the car from chaincode state
-        if (!carAsBytes || carAsBytes.length === 0) {
+        const metalItemAsBytes = await ctx.stub.getState(metalitemnumber); // get the car from chaincode state
+        if (!metalItemAsBytesAsBytes || metalItemAsBytesAsBytes.length === 0) {
             throw new Error(`${metalitemnumber} does not exist`);
         }
         console.log(carAsBytes.toString());
@@ -32,6 +32,20 @@ class MetalItem extends Contract {
     }
 
     async createMetalItem(ctx, metalcompositionid, itemname) {
+        //Retrieve latest id for metalitem and metalcomposition, increment them for this current creation
+       for await (const {key, value} of ctx.stub.getStateByRange('', '')) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push({ Key: key, Record: record });
+        }
+        //Create metalcomposition here as well
+
         console.info('============= START : Create Car ===========');
 
         const metalitem = {
