@@ -6,7 +6,11 @@
 
 'use strict';
 
-const FabCar = require('./lib/fabcar');
+const SourceRecord = require('./lib/sourcerecord');
+const MetalItem = require('./lib/metalitem');
 
-module.exports.FabCar = FabCar;
-module.exports.contracts = [ FabCar ];
+module.exports.SourceRecord = SourceRecord;
+module.exports.MetalItem = MetalItem;
+
+// module.exports.contracts = [ FabCar ];
+module.exports.contracts = [ SourceRecord, MetalItem];
