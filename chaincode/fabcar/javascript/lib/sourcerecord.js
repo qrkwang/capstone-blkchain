@@ -12,112 +12,35 @@ class SourceRecord extends Contract {
 
     async initLedger(ctx) {
         console.info('============= START : Initialize Ledger ===========');
-        // const cars = [
-        //     {
-        //         color: 'blue',
-        //         make: 'Toyota',
-        //         model: 'Prius',
-        //         owner: 'Tomoko',
-        //     },
-        //     {
-        //         color: 'red',
-        //         make: 'Ford',
-        //         model: 'Mustang',
-        //         owner: 'Brad',
-        //     },
-        //     {
-        //         color: 'green',
-        //         make: 'Hyundai',
-        //         model: 'Tucson',
-        //         owner: 'Jin Soo',
-        //     },
-        //     {
-        //         color: 'yellow',
-        //         make: 'Volkswagen',
-        //         model: 'Passat',
-        //         owner: 'Max',
-        //     },
-        //     {
-        //         color: 'black',
-        //         make: 'Tesla',
-        //         model: 'S',
-        //         owner: 'Adriana',
-        //     },
-        //     {
-        //         color: 'purple',
-        //         make: 'Peugeot',
-        //         model: '205',
-        //         owner: 'Michel',
-        //     },
-        //     {
-        //         color: 'white',
-        //         make: 'Chery',
-        //         model: 'S22L',
-        //         owner: 'Aarav',
-        //     },
-        //     {
-        //         color: 'violet',
-        //         make: 'Fiat',
-        //         model: 'Punto',
-        //         owner: 'Pari',
-        //     },
-        //     {
-        //         color: 'indigo',
-        //         make: 'Tata',
-        //         model: 'Nano',
-        //         owner: 'Valeria',
-        //     },
-        //     {
-        //         color: 'brown',
-        //         make: 'Holden',
-        //         model: 'Barina',
-        //         owner: 'Shotaro',
-        //     },
-        // ];
 
-        // for (let i = 0; i < cars.length; i++) {
-        //     cars[i].docType = 'car';
-        //     await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
-        //     console.info('Added <--> ', cars[i]);
-        // }
-
-           const sourceRecord = {
-            docType = 'sourcerecord'
-            metalpurity: '100',
-            metal: 'aluminium',
-            sourcename: 'Chinalco',
-            volume: '1 tonne'
-        };
-
-        await ctx.stub.putState('SR00001', Buffer.from(JSON.stringify(sourceRecord)));
         console.info('============= END : Initialize Ledger ===========');
     }
 
-    async querySourceRecord(ctx, sourceRecordNumber) {
-        const carAsBytes = await ctx.stub.getState(sourceRecordNumber); // get the car from chaincode state
-        if (!carAsBytes || carAsBytes.length === 0) {
-            throw new Error(`${sourceRecordNumber} does not exist`);
+    async querySourceRecord(ctx, sourceRecordID) {
+        const sourceRecordAsBytes = await ctx.stub.getState(sourceRecordID); // get the source record from chaincode state
+        if (!sourceRecordAsBytes || sourceRecordAsBytes.length === 0) {
+            throw new Error(`${sourceRecordAsBytes} does not exist`);
         }
-        console.log(carAsBytes.toString());
-        return carAsBytes.toString();
+        console.log(sourceRecordAsBytes.toString());
+        return sourceRecordAsBytes.toString();
     }
 
-    async createSourceRecord(ctx, sourceRecordNumber, metalpurity, metal, sourcename, volume) {
-        console.info('============= START : Create Car ===========');
+    async createSourceRecord(ctx, id, metalpurity, metalname, sourcename) {
+        console.info('============= START : Create SR ===========');
 
         const sourceRecord = {
-            docType = 'sourcerecord'    
+            id,
+            docType: "sourcerecord",
+            metalname,
             metalpurity,
-            metal,
             sourcename,
-            volume,
         };
 
-        await ctx.stub.putState(sourceRecordNumber, Buffer.from(JSON.stringify(sourceRecord)));
-        console.info('============= END : Create Car ===========');
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(sourceRecord)));
+        console.info('============= END : Create SR ===========');
     }
 
-    async queryAllSourceRecord(ctx) {
+   async queryAll(ctx) {
         const startKey = '';
         const endKey = '';
         const allResults = [];
@@ -125,15 +48,40 @@ class SourceRecord extends Contract {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
             try {
-                let rcvObj = JSON.parse(strValue);
-                if (rcvObj.docType == 'sourcerecord') {
-                    record = rcvObj;
-                }
+                record = JSON.parse(strValue);
             } catch (err) {
                 console.log(err);
                 record = strValue;
             }
             allResults.push({ Key: key, Record: record });
+        }
+        console.info(allResults);
+        return JSON.stringify(allResults);
+    }
+
+    async queryAllSourceRecord(ctx) {
+        const startKey = '';
+        const endKey = '';
+        const allResults = [];
+        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+            console.log("looping all results");
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                let objResult = JSON.parse(strValue);
+                console.log("obj result", objResult);
+                if (objResult.docType == "sourcerecord") {
+                    record = objResult;
+                    console.log("doctype is sourcerecord, adding", record);
+                    allResults.push({ Key: key, Record: record });
+
+                }
+
+            } catch (err) {
+                // console.log(err);
+                console.log("error occurred", err);
+                // record = strValue;
+            }
         }
         console.info(allResults);
         return JSON.stringify(allResults);

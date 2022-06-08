@@ -31,24 +31,34 @@ class MetalItem extends Contract {
         return carAsBytes.toString();
     }
 
-    async createMetalItem(ctx, id, sourcerecordid, itemname) {
+    async createMetalItem(ctx, metalcompositionid, itemname) {
+        //Retrieve latest id for metalitem and metalcomposition, increment them for this current creation
+       const allResults = [];
+       for await (const {key, value} of ctx.stub.getStateByRange('', '')) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push({ Key: key, Record: record });
+        }
+        //Create metalcomposition here as well
 
-        console.info('============= START : Create MI ===========');
+        console.info('============= START : Create Car ===========');
 
         const metalitem = {
-            id,
-            docType: "metalitem",
-            sourcerecordid,
+            metalcompositionid,
             itemname,
         };
 
-        console.log(metalitem)
-
-        await ctx.stub.putState(id, Buffer.from(JSON.stringify(metalitem)));
-        console.info('============= END : Create MI ===========');
+        await ctx.stub.putState(metalcompositionid, Buffer.from(JSON.stringify(metalitem)));
+        console.info('============= END : Create Car ===========');
     }
 
-    async queryAll(ctx) {
+    async queryAllMetalItem(ctx) {
         const startKey = '';
         const endKey = '';
         const allResults = [];
@@ -62,32 +72,6 @@ class MetalItem extends Contract {
                 record = strValue;
             }
             allResults.push({ Key: key, Record: record });
-        }
-        console.info(allResults);
-        return JSON.stringify(allResults);
-    }
-
-    async queryAllMetalItem(ctx) {
-        const startKey = '';
-        const endKey = '';
-        const allResults = [];
-        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
-            const strValue = Buffer.from(value).toString('utf8');
-            let record;
-            try {
-                let objResult = JSON.parse(strValue);
-                console.log("obj result", objResult);
-                if (objResult.docType == "metalitem") {
-                    record = objResult;
-                    console.log("doctype is metalitem, adding", record);
-                    allResults.push({ Key: key, Record: record });
-
-                }
-            } catch (err) {
-
-                console.log("error occurred", err);
-
-            }
         }
         console.info(allResults);
         return JSON.stringify(allResults);

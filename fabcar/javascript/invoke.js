@@ -9,6 +9,7 @@
 const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 async function main() {
     try {
@@ -37,13 +38,12 @@ async function main() {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network.
-        const contract = network.getContract('mychain', 'MetalItem');
+        // const contract = network.getContract('mychain', 'MetalItem');
+        const contract = network.getContract('mychain', 'SourceRecord');
 
         // Submit the specified transaction.
-        // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
-        // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR12', 'Dave')
-        // await contract.submitTransaction('createCar', 'SR0002', '100%', 'aluminium', 'Chinalco', '3 tonne');
-        await contract.submitTransaction('createMetalItem', 'MC00002', 'Metal Cans');
+        // await contract.submitTransaction('createMetalItem', uuidv4()+"", 'MC UUID','SR UUID', 'Metal Cans');
+        await contract.submitTransaction('createSourceRecord', uuidv4()+"", '100%', 'Steel', 'Chinalco' );
 
         console.log('Transaction has been submitted');
 
