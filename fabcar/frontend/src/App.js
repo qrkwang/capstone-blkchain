@@ -10,10 +10,16 @@ const Home = () => {
   let navigate = useNavigate();
 
   return (
-      <div> 
-      nimama</div>
-    )
+      <div>
+      <p>Metal Production View </p>
+      <p>Manufacturer View </p>
+      <p>Recycling Facility View </p>
+
+      </div>
+    );
 }
+
+
 function App() {
     return (
         <BrowserRouter>
