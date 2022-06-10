@@ -87,19 +87,7 @@ class SourceRecord extends Contract {
         return JSON.stringify(allResults);
     }
 
-    // async changeCarOwner(ctx, carNumber, newOwner) {
-    //     console.info('============= START : changeCarOwner ===========');
 
-    //     const carAsBytes = await ctx.stub.getState(carNumber); // get the car from chaincode state
-    //     if (!carAsBytes || carAsBytes.length === 0) {
-    //         throw new Error(`${carNumber} does not exist`);
-    //     }
-    //     const car = JSON.parse(carAsBytes.toString());
-    //     car.owner = newOwner;
-
-    //     await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
-    //     console.info('============= END : changeCarOwner ===========');
-    // }
 
 }
 

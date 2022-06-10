@@ -9,6 +9,57 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 
+
+//GENERIC  ============================== START ======================================
+app.get('/api/queryall', async function (req, res)  {
+        console.log("queryall");
+    try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the user.
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+
+        // Create a new gateway for connecting to our peer node.
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // Get the network (channel) our contract is deployed to.
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network.
+        const contract = network.getContract('mychain', 'Generic');
+
+        // Evaluate the specified transaction.
+        const result = await contract.evaluateTransaction('queryAll');
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+
+
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        res.status(200).json({response: result.toString()});
+
+        // Disconnect from the gateway.
+        await gateway.disconnect();
+        
+    } catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        process.exit(1);
+    }
+});
+
+//GENERIC RECORD ============================== END ======================================
+
 //SOURCE RECORD ============================== START ======================================
 
 app.get('/api/queryallsr', async function (req, res)  {
@@ -97,7 +148,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 
 app.post('/api/addsr/', async function (req, res) {
-        console.log("addsr");              
+        console.log("addsr");
 
         // const metalpurity = req.body.metalpurity;
         // const metalname = req.body.metalname;
@@ -290,19 +341,19 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         contract = network.getContract('mychain', 'MetalComposition');
 
-        json.forEach((item) => {
+        metalCompositionArray.forEach(async (item) => {
           console.log('name: ' + item.name);
           console.log('percentage: ' + item.percentage);
 
           console.log("submitting transaction for metal composition");
-        await contract.submitTransaction('createMetalComposition', metalItemUUID, item.name, item.percentage);
-     
+        await contract.submitTransaction('createMetalComposition', uuidv4()+"", item.name, item.percentage, metalItemUUID);
+
         });
 
 
     // async createMetalComposition(ctx, id, name, percentage, metalitemid) {
 
-        res.send("Transaction has been submitted", contract);
+        res.send("Transaction has been submitted");
 // Disconnect from the gateway.
         await gateway.disconnect();
 } catch (error) {
@@ -315,6 +366,86 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 //METAL ITEM ============================== END ======================================
 
 //METAL COMPOSITION ============================== START ======================================
+
+app.get('/api/queryallmc', async function (req, res)  {
+        console.log("queryallmc");
+    try {
+const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+// Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the user.
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+  // Create a new gateway for connecting to our peer node.
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // Get the network (channel) our contract is deployed to.
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network.
+        const contract = network.getContract('mychain', 'MetalComposition');
+
+        // Evaluate the specified transaction.
+        const result = await contract.evaluateTransaction('queryAllMetalComposition');
+        console.log("result received from contract");
+
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        res.status(200).json({response: result.toString()});
+} catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        res.status(500).json({error: error});
+        process.exit(1);
+    }
+});
+
+app.get('/api/querymcbymi/:mi_index', async function (req, res) {
+        console.log("query mc by mi");
+        paramId = req.params.mi_index;
+
+    try {
+const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+// Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the user.
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+  // Create a new gateway for connecting to our peer node.
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // Get the network (channel) our contract is deployed to.
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network.
+        const contract = network.getContract('mychain', 'MetalComposition');
+// Evaluate the specified transaction.
+        const result = await contract.evaluateTransaction('queryMCByMI', paramId);
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        res.status(200).json({response: result.toString()});
+} catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        res.status(500).json({error: error});
+        process.exit(1);
+    }
+});
+
 //METAL COMPOSITION ============================== END ======================================
 
-app.listen(8080);
+app.listen(8081);

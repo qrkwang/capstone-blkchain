@@ -44,24 +44,7 @@ class MetalComposition extends Contract {
         console.info('============= END : Create MC ===========');
     }
 
-    async queryAll(ctx) {
-        const startKey = '';
-        const endKey = '';
-        const allResults = [];
-        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
-            const strValue = Buffer.from(value).toString('utf8');
-            let record;
-            try {
-                record = JSON.parse(strValue);
-            } catch (err) {
-                console.log(err);
-                record = strValue;
-            }
-            allResults.push({ Key: key, Record: record });
-        }
-        console.info(allResults);
-        return JSON.stringify(allResults);
-    }
+
 
     async queryAllMetalComposition(ctx) {
         const startKey = '';
@@ -71,15 +54,42 @@ class MetalComposition extends Contract {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
             try {
-            let objResult = JSON.parse(strValue);
-            console.log("obj result", objResult);
-            if (objResult.docType == "metalcomposition") {
-                record = objResult;
-                console.log("doctype is metalcomposition, adding", record);
-                allResults.push({ Key: key, Record: record });
+                let objResult = JSON.parse(strValue);
+                console.log("obj result", objResult);
+                if (objResult.docType == "metalcomposition") {
+                    record = objResult;
+                    console.log("doctype is metalcomposition, adding", record);
+                    allResults.push({ Key: key, Record: record });
 
+                }
             }
             catch (err) {
+                console.log("error occurred", err);
+
+            }
+        }
+        console.info(allResults);
+        return JSON.stringify(allResults);
+    }
+
+    async queryMCByMI(ctx, metalitemid) {
+        const startKey = '';
+        const endKey = '';
+        const allResults = [];
+        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                let objResult = JSON.parse(strValue);
+                console.log("obj result", objResult);
+                if (objResult.docType == "metalcomposition" && objResult.metalitemid == metalitemid) {
+                    record = objResult;
+                    console.log("found metalcomposition with given metalid", record);
+                    allResults.push({ Key: key, Record: record });
+
+                }
+            } catch (err) {
+
                 console.log("error occurred", err);
 
             }
