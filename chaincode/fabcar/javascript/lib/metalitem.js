@@ -24,11 +24,11 @@ class MetalItem extends Contract {
 
     async queryMetalItem(ctx, metalitemnumber) {
         const metalItemAsBytes = await ctx.stub.getState(metalitemnumber); // get the car from chaincode state
-        if (!metalItemAsBytesAsBytes || metalItemAsBytesAsBytes.length === 0) {
+        if (!metalItemAsBytes || metalItemAsBytes.length === 0) {
             throw new Error(`${metalitemnumber} does not exist`);
         }
-        console.log(carAsBytes.toString());
-        return carAsBytes.toString();
+        console.log(metalItemAsBytes.toString());
+        return metalItemAsBytes.toString();
     }
 
     async createMetalItem(ctx, id, sourcerecordid, itemname) {

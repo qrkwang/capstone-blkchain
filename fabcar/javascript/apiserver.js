@@ -1,7 +1,14 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+const cors = require('cors');
+
 var app = express();
 app.use(bodyParser.json());
+app.use(cors({
+    origin: '*'
+}));
+
+
 // Setting for Hyperledger Fabric
 const { Gateway,Wallets } = require('fabric-network');
 const path = require('path');
@@ -97,15 +104,14 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         res.status(200).json({response: result.toString()});
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
-        res.status(500).json({error: error});
-        process.exit(1);
+        res.status(500).json({error: error.toString});
     }
 });
 
 
 
 
-app.get('/api/query/:sr_index', async function (req, res) {
+app.get('/api/querysr/:sr_index', async function (req, res) {
         console.log("query single sr");
 
         paramId = req.params.sr_index;
@@ -139,9 +145,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
 } catch (error) {
+        const errorStr = error.toString();
+
+        if (errorStr.includes("does not exist")) {
+                console.log("Data does not exist");
+                res.status(301).send("Data does not exist");
+
+        } 
         console.error(`Failed to evaluate transaction: ${error}`);
-        res.status(500).json({error: error});
-        process.exit(1);
+        res.status(500).json({error: error.toString});
     }
 });
 
@@ -150,12 +162,12 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 app.post('/api/addsr/', async function (req, res) {
         console.log("addsr");
 
-        // const metalpurity = req.body.metalpurity;
-        // const metalname = req.body.metalname;
-        // const sourcename = req.body.sourcename;
-        const metalpurity = "100%"
-        const metalname = "Alu"
-        const sourcename = "Chinalco"
+        const metalpurity = req.body.metalpurity;
+        const metalname = req.body.metalname;
+        const sourcename = req.body.sourcename;
+        // const metalpurity = "100%"
+        // const metalname = "Alu"
+        // const sourcename = "Chinalco"
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -185,15 +197,16 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 // Submit the specified transaction.
             // async createSourceRecord(ctx, id, metalpurity, metalname, sourcename) {
 
+        const srUUID = uuidv4()+"";
+
         console.log("submitting transaction");
-        await contract.submitTransaction('createSourceRecord', uuidv4()+"", metalpurity, metalname, sourcename);
+        await contract.submitTransaction('createSourceRecord', srUUID, metalpurity, metalname, sourcename);
         console.log('Transaction has been submitted');
-        res.send('Transaction has been submitted');
+        res.status(201).send({text: 'Transaction has been submitted', uuid: srUUID});
 // Disconnect from the gateway.
         await gateway.disconnect();
 } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
     }
 })
 
@@ -245,9 +258,10 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 
 
-app.get('/api/query/:mi_index', async function (req, res) {
+app.get('/api/querymi/:mi_index', async function (req, res) {
+        console.log("query mi");
         paramId = req.params.mi_index;
-
+        console.log("param id", paramId);
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -279,7 +293,6 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error});
-        process.exit(1);
     }
 });
 
@@ -290,10 +303,10 @@ app.post('/api/addmi/', async function (req, res) {
         // const sourcerecordid = req.body.sourcerecordid;
         const itemname = "Metal Can"
         const sourcerecordid = "SR UUID"
-        const metalCompositionArray = req.body.json
-        // console.log("req body is ", req.body);
+        const metalCompositionArray = req.body.mcarray
+        console.log("req body is ", req.body);
 
-        console.log("metalCompositionArray is ", metalCompositionArray);
+        console.log("metalCompositionArray is ", metalCompositionArray, itemname, sourcerecordid);
     try {
 
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -351,14 +364,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         });
 
 
-    // async createMetalComposition(ctx, id, name, percentage, metalitemid) {
+        console.log("Metal Item Created");
+        res.status(201).send({text: "Transaction has been submitted", uuid: metalItemUUID});
 
-        res.send("Transaction has been submitted");
 // Disconnect from the gateway.
         await gateway.disconnect();
 } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
     }
 })
 
@@ -438,7 +450,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryMCByMI', paramId);
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-        res.status(200).json({response: result.toString()});
+        res.status(201).json({response: result.toString()});
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error});
