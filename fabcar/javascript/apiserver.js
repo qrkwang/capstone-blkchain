@@ -151,9 +151,10 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
                 console.log("Data does not exist");
                 res.status(301).send("Data does not exist");
 
-        } 
+        } else {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error.toString});
+        }
     }
 });
 
@@ -296,13 +297,65 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
     }
 });
 
+app.get('/api/querymiandmc/:mi_index', async function (req, res) {
+        console.log("query mi and mc");
+        paramId = req.params.mi_index;
+        console.log("param id", paramId);
+    try {
+const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+// Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the user.
+        const identity = await wallet.get('appUser');
+        if (!identity) {
+            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+  // Create a new gateway for connecting to our peer node.
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // Get the network (channel) our contract is deployed to.
+        let network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network.
+        let contract = network.getContract('mychain', 'MetalItem');
+// Evaluate the specified transaction.
+        const result = await contract.evaluateTransaction('queryMetalItem', paramId);
+        console.log(`MI has been evaluated, result is: ${result.toString()}`);
+
+        network = await gateway.getNetwork('mychannel');
+        contract = network.getContract('mychain', 'MetalComposition');
+        let mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+
+        console.log(`MC has been evaluated, result is ${mcResult.toString()}`);
+
+
+
+        res.status(200).json({mi: result.toString(), mc: mcResult.toString()});
+} catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        res.status(500).json({error: error});
+    }
+});
+
 
 
 app.post('/api/addmi/', async function (req, res) {
-        // const itemname = req.body.itemname;
-        // const sourcerecordid = req.body.sourcerecordid;
-        const itemname = "Metal Can"
-        const sourcerecordid = "SR UUID"
+        const itemname = req.body.itemname;
+        const sourcerecordid = req.body.sourcerecordid;
+        // const itemname = "Metal Can"
+        // const sourcerecordid = "SR UUID"
         const metalCompositionArray = req.body.mcarray
         console.log("req body is ", req.body);
 
@@ -360,7 +413,8 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
           console.log("submitting transaction for metal composition");
         await contract.submitTransaction('createMetalComposition', uuidv4()+"", item.name, item.percentage, metalItemUUID);
-
+       // const mcResult = await contract.evaluateTransaction('queryMCByMI', metalItemUUID);
+        // console.log(`MC has been evaluated, result is ${mcResult.toString()}`);
         });
 
 
@@ -422,6 +476,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 app.get('/api/querymcbymi/:mi_index', async function (req, res) {
         console.log("query mc by mi");
         paramId = req.params.mi_index;
+        console.log("param", paramId);
 
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -449,7 +504,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         const contract = network.getContract('mychain', 'MetalComposition');
 // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryMCByMI', paramId);
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        console.log(`Transaction MC has been evaluated, result is: ${result.toString()}`);
         res.status(201).json({response: result.toString()});
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
