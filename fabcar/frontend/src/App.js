@@ -35,7 +35,7 @@ import QRCode from "react-qr-code";
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `http://192.168.75.131:8081`
+const backendURL = `http://192.168.17.129:8081`
 
 const Home = () => {
 
@@ -953,37 +953,42 @@ const ManufacturerPrint = () => {
     const [itemname, setItemName] = useState("");
     const [metalcompositionArray, setMetalCompositionArray] = useState([]);
 
-    useEffect(() => {
+    useEffect( () => {
+        console.log("getting mi details");
 
-
-        instance.get(backendURL + `/api/querymi/` + localStorage.getItem("miUUID"))
-            .then((res) => {
-                const responseObj = JSON.parse(res.data.response);
-                console.log("res data", responseObj);
-                setItemName(responseObj.itemname);
-                setMIUUID(responseObj.id);
-
-            }).catch(error => {
+            instance.get(backendURL + `/api/querymiandmc/` + localStorage.getItem("miUUID"))
+                .then((res) => {
+                    const miObj = JSON.parse(res.data.mi);
+                    const mcObj = JSON.parse(res.data.mc);
+                    console.log("response", res.data.mc);
+                    // const responseObj = JSON.parse(res.data.response);
+                    // console.log("res data", responseObj);
+                    setItemName(miObj.itemname);
+                    setMIUUID(miObj.id);
+                    setMetalCompositionArray(mcObj)
+                }).catch(error => {
                     console.log("error while sending request", error);
-
 
 
                 });
 
-
-        instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
-            .then((res) => {
-                const responseArrayObj = JSON.parse(res.data.response);
-                // console.log("res data", responseArrayObj);
-                setMetalCompositionArray(responseArrayObj);
-
-            }).catch(error => {
-            console.log("error while sending request", error);
-
-
-
-        });
     }, []);
+    // useEffect( () => {
+    //     console.log("getting mc details");
+    //
+    //     instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
+    //         .then((res) => {
+    //             const responseArrayObj = JSON.parse(res.data.response);
+    //             console.log("res data mc", responseArrayObj);
+    //             setMetalCompositionArray(responseArrayObj);
+    //
+    //         }).catch(error => {
+    //         console.log("error while sending request", error);
+    //
+    //
+    //     });
+    //
+    // }, []);
 
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
@@ -1379,32 +1384,7 @@ const RecyclingFacPrint = () => {
                     })}
                     {/*<h3>Material Name: {metalpurity}</h3>*/}
                     {/*<h3>Material Percentage: {sourcename}</h3>*/}
-
-                    <Button
-                        type="submit"
-                        // fullWidth
-                        variant="contained"
-                        color="primary"
-                        style = {{
-                            margin: "10px"
-                        }}
-                        onClick={handlePrint}
-                    >
-                        Print QR
-                    </Button>
-
-                    <Button
-                        type="submit"
-                        // fullWidth
-                        variant="contained"
-                        color="primary"
-                        style = {{
-                            margin: "10px"
-
-                        }}
-                    >
-                        Write NFC
-                    </Button>
+                    
                 </div>
 
 
