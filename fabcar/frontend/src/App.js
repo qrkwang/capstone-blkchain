@@ -18,7 +18,11 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import image from './sorticon.png';
 import { v4 as uuidv4 } from 'uuid';
+import { useCallback, useContext} from 'react';
 
+// import Scan from './containers/Scan';
+// import Write from './containers/Write';
+import { ActionsContext } from './contexts/context';
 import {
     Button,
     Container,
@@ -31,6 +35,9 @@ import {
 } from "@mui/material";
 import {useEffect, useState} from "react";
 import QRCode from "react-qr-code";
+import {QrReader} from "react-qr-reader";
+// import {useCallback, useContext} from "types/react";
+import Scanner from "./components/Scanner/Scanner";
 
 //Made axios global
 const axios = require("axios"); //use axios for http requests
@@ -408,11 +415,102 @@ const Manufacturer = () => {
 
     //Form
     const [srUUID, setSRUUID] = useState("");
-
+    const [triggerSubmit, setTriggerSubmit] = useState(false);
 
     //Modal Dialog
     const [open, setOpen] = useState(false);
     const [pageContent, setPageContent] = useState("");
+
+    // NFC scanner
+    const [actions, setActions] = useState(null);
+    const {scan, write} = actions || {};
+
+    const actionsValue = {actions,setActions};
+
+
+    const Scan = () => {
+        const [message, setMessage] = useState('');
+        const [serialNumber, setSerialNumber] = useState('');
+        const { actions, setActions} = useContext(ActionsContext);
+
+        const scan = useCallback(async() => {
+            console.log("scan function");
+            if ('NDEFReader' in window) {
+                try {
+                    console.log("first thing in scan function");
+                    const ndef = new window.NDEFReader();
+                    await ndef.scan();
+
+                    console.log("Scan started successfully.");
+                    ndef.onreadingerror = () => {
+                        console.log("Cannot read data from the NFC tag. Try another one?");
+                    };
+
+                    ndef.onreading = event => {
+                        console.log("NDEF message read.");
+                        onReading(event);
+                        setActions({
+                            scan: 'scanned',
+                            write: null
+                        });
+                    };
+
+                } catch(error){
+                    console.log(`Error! Scan failed to start: ${error}.`);
+                };
+            } else {
+                console.log("ndef reader not in window");
+            }
+        },[setActions]);
+
+        const onReading = ({message, serialNumber}) => {
+            setSerialNumber(serialNumber);
+            for (const record of message.records) {
+                switch (record.recordType) {
+                    case "text":
+                        const textDecoder = new TextDecoder(record.encoding);
+                        setMessage(textDecoder.decode(record.data));
+                        setSRUUID(record.data);
+                        console.log("record data is", record.data);
+
+                        break;
+                    case "url":
+                        // TODO: Read URL record with record data.
+                        break;
+                    default:
+                    // TODO: Handle other records with record data.
+                }
+            }
+        };
+
+        useEffect(() => {
+            scan();
+        }, [scan]);
+
+        console.log("NFC Tag read successfully ", serialNumber, message);
+        return(
+            <>
+                {actions.scan === 'scanned' ?
+                    <div>
+                        {/*<p>Serial Number: {serialNumber}</p>*/}
+                        {/*<p>Message: {message}</p>*/}
+                    </div>
+                    :
+                    <Scanner status={actions.scan}></Scanner> }
+            </>
+        );
+    };
+
+    const onHandleAction = (actions) =>{
+        console.log("handle action scan");
+        setActions({...actions});
+    }
+    // useEffect(() => {
+    //     buttonRef.current.click();
+    //     console.log("button clicked");
+    //     setTriggerSubmit(false);
+    //
+    // }, [triggerSubmit])
 
     function areFieldsEmpty() {
         if (srUUID !== "") {
@@ -431,6 +529,26 @@ const Manufacturer = () => {
         setSRUUID("");
 
     };
+
+    const handleScan = (result, error) => {
+
+
+        if (!!result) {
+            console.log("result", result);
+            setSRUUID(result?.text);
+            setTriggerSubmit(true);
+            // submitButton.current;
+            // this.form.dispatchEvent(
+            //     new Event("submit", { cancelable: true, bubbles: true })
+            // );
+
+        }
+
+        if (!!error) {
+            //Will constantly have error if QR code not shown.
+            // console.log("error", error)
+        }
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -522,6 +640,11 @@ const Manufacturer = () => {
         );
 
     }
+
+    const buttonRef = useRef(null)
+    let constraints = {
+        facingMode: { exact: "environment" }
+    };
     return (
         <div
             style={{
@@ -542,8 +665,33 @@ const Manufacturer = () => {
                 }}>
                     Scan Source Record
                 </div>
-                <form
+                <center>
+                    <div style={{marginTop:30}}>
 
+
+                        <QrReader
+                            constraints={ constraints }
+                            delay={300}
+                            // onError={handleError}
+                            // onScan={handleScan}
+                            style={{ height: 240, width: 320 }}
+                            onResult={handleScan}
+
+                        />
+                    </div>
+
+
+                    <h1>NFC Tool</h1>
+                <div className="App-container">
+                    <Button onClick={()=>onHandleAction({scan: 'scanning', write: null})} className="btn">Scan</Button>
+                    {/*<Button onClick={()=>onHandleAction({scan: null, write: 'writing'})} className="btn">Write</Button>*/}
+                </div>
+                <ActionsContext.Provider value={actionsValue}>
+                    {scan && <Scan/>}
+                    {/*{write && <Write/>}*/}
+                </ActionsContext.Provider>
+                </center>
+                <form
                     // className={useStyles.form}
                     noValidate
                     onSubmit={(e) => handleSubmit(e)}
@@ -577,6 +725,7 @@ const Manufacturer = () => {
                             color="primary"
                             style = {{
                             }}
+                            ref={buttonRef}
                         >
                             Submit
                         </Button>
