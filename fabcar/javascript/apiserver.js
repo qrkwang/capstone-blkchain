@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 const cors = require('cors');
+const https = require('https');
 
 var app = express();
 app.use(bodyParser.json());
@@ -15,6 +16,11 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
+
+const options = {
+        key: fs.readFileSync('../certs/localhost-key.pem'),
+        cert: fs.readFileSync('../certs/localhost.pem')
+}
 
 
 //GENERIC  ============================== START ======================================
@@ -515,4 +521,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 //METAL COMPOSITION ============================== END ======================================
 
-app.listen(8081);
+https.createServer(options, app).listen(8081, ()=> {
+        console.log('Server listening on port 8081');
+});
+
