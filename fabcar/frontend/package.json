@@ -25,7 +25,8 @@
   },
   "scripts": {
   "start":
-    "set HTTPS=true&&set SSL_CRT_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\192.168.68.117.pem&&set SSL_KEY_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\192.168.68.117-key.pem&&react-scripts start",
+    "set HTTPS=true&&set SSL_CRT_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\192.168.75.131.pem&&set SSL_KEY_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\192.168.75.131-key.pem&&react-scripts start",
+
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
