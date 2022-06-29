@@ -43,7 +43,7 @@ import Writer from "./components/Writer/Writer";
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `http://192.168.75.131:8081`
+const backendURL = `https://192.168.75.131:8081`
 
 const Home = () => {
 
