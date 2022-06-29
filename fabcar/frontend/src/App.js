@@ -38,11 +38,12 @@ import QRCode from "react-qr-code";
 import {QrReader} from "react-qr-reader";
 // import {useCallback, useContext} from "types/react";
 import Scanner from "./components/Scanner/Scanner";
+import Writer from "./components/Writer/Writer";
 
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `http://192.168.17.129:8081`
+const backendURL = `http://192.168.75.131:8081`
 
 const Home = () => {
 
@@ -304,6 +305,37 @@ const MetalProductionPrint = () => {
     const [open, setOpen] = useState(false);
     const [pageContent, setPageContent] = useState("");
 
+    // NFC scanner
+    const [actions, setActions] = useState(null);
+    const {scan, write} = actions || {};
+
+    const actionsValue = {actions,setActions};
+
+
+    const Write = () => {
+        console.log("write function");
+
+        const onWrite = async(message) => {
+            try {
+                const ndef = new window.NDEFReader();
+                // This line will avoid showing the native NFC UI reader
+                await ndef.scan();
+                await ndef.write({records: [{ recordType: "text", data: message }]});
+                alert(`Value Saved!`);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        return (
+            <Writer writeFn={onWrite}/>
+        );
+    };
+
+    const onHandleAction = (actions) =>{
+        console.log("handle action scan");
+        setActions({...actions});
+    }
 
     useEffect(() => {
 
@@ -394,9 +426,16 @@ const MetalProductionPrint = () => {
                             margin: "10px"
 
                         }}
+                        onClick={()=>onHandleAction({scan: null, write: 'writing'})}
                     >
                         Write NFC
                     </Button>
+                <center>
+                    <ActionsContext.Provider value={actionsValue}>
+                        {/*{scan && <Scan/>}*/}
+                        {write && <Write/>}
+                    </ActionsContext.Provider>
+                </center>
                 </div>
 
 
