@@ -306,19 +306,7 @@ const MetalProductionPrint = () => {
     const [open, setOpen] = useState(false);
     const [pageContent, setPageContent] = useState("");
 
-    // NFC scanner
-    const [actions, setActions] = useState(null);
-    const {scan, write} = actions || {};
 
-    const actionsValue = {actions,setActions};
-
-    const onHandleAction = (actions) =>{
-        console.log("handle action scan", actions);
-        setActions({...actions});
-        console.log("write is ", write);
-        console.log("scan is ", scan);
-
-    }
 
     useEffect(() => {
 
@@ -566,12 +554,6 @@ const Manufacturer = () => {
         console.log("handle action scan");
         setActions({...actions});
     }
-    // useEffect(() => {
-    //     buttonRef.current.click();
-    //     console.log("button clicked");
-    //     setTriggerSubmit(false);
-    //
-    // }, [triggerSubmit])
 
     function areFieldsEmpty() {
         if (srUUID !== "") {
@@ -741,8 +723,6 @@ const Manufacturer = () => {
                         />
                     </div>
 
-
-                    <h1>NFC Tool</h1>
                 <div className="App-container">
                     <Button onClick={()=>onHandleAction({scan: 'scanning', write: null})} className="btn">Scan</Button>
                     {/*<Button onClick={()=>onHandleAction({scan: null, write: 'writing'})} className="btn">Write</Button>*/}
@@ -1166,23 +1146,34 @@ const ManufacturerPrint = () => {
     useEffect( () => {
         console.log("getting mi details");
 
-            instance.get(backendURL + `/api/querymiandmc/` + localStorage.getItem("miUUID"))
-                .then((res) => {
-                    const miObj = JSON.parse(res.data.mi);
-                    const mcObj = JSON.parse(res.data.mc);
-                    console.log("response", res.data.mc);
-                    // const responseObj = JSON.parse(res.data.response);
-                    // console.log("res data", responseObj);
-                    setItemName(miObj.itemname);
-                    setMIUUID(miObj.id);
-                    setMetalCompositionArray(mcObj)
-                }).catch(error => {
-                    console.log("error while sending request", error);
+        instance.get(backendURL + `/api/querymi/` + localStorage.getItem("miUUID"))
+            .then((res) => {
+                const responseObj = JSON.parse(res.data.response);
+                console.log("res data", responseObj);
+                setItemName(responseObj.itemname);
+                setMIUUID(responseObj.id);
+
+            }).catch(error => {
+            console.log("error while sending request", error);
+        });
+
+        console.log("getting mc details");
+
+        instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
+            .then((res) => {
+                const responseArrayObj = JSON.parse(res.data.response);
+                // console.log("res data", responseArrayObj);
+                setMetalCompositionArray(responseArrayObj);
+
+            }).catch(error => {
+            console.log("error while sending request", error);
 
 
-                });
 
+        });
     }, []);
+
+
     // useEffect( () => {
     //     console.log("getting mc details");
     //
@@ -1205,6 +1196,24 @@ const ManufacturerPrint = () => {
         content: () => componentRef.current,
     });
 
+    const onWrite = async(message) => {
+        console.log("message", message);
+        try {
+            // if ('NDEFReader' in window) {
+            console.log("ndef in window");
+            const ndef = new window.NDEFReader();
+            // This line will avoid showing the native NFC UI reader
+            await ndef.scan();
+            await ndef.write({records: [{recordType: "text", data: message}]});
+            alert(`Value Saved!`);
+            // }
+            // else {
+            //     console.log("ndef reader not in window");
+            // }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <div
@@ -1284,6 +1293,8 @@ const ManufacturerPrint = () => {
                             margin: "10px"
 
                         }}
+                        onClick={()=>onWrite(miUUID)}
+
                     >
                         Write NFC
                     </Button>
@@ -1311,6 +1322,11 @@ const RecyclingFac = () => {
     const [open, setOpen] = useState(false);
     const [pageContent, setPageContent] = useState("");
 
+    // NFC scanner
+    const [actions, setActions] = useState(null);
+    const {scan, write} = actions || {};
+
+    const actionsValue = {actions,setActions};
     function areFieldsEmpty() {
         if (miUUID !== "") {
             return false;
@@ -1345,7 +1361,7 @@ const RecyclingFac = () => {
                         if (res.status === 200) {
                             setPageContent("200");
                             setOpen(true);
-                            navigate(`/rf/print`);
+                            navigate(`/rf/next`);
                             localStorage.setItem("miUUID", miUUID); // The returned data obj contains userId
 
                         }
@@ -1424,6 +1440,96 @@ const RecyclingFac = () => {
         );
 
     }
+
+    const Scan = () => {
+        const [message, setMessage] = useState('');
+        const [serialNumber, setSerialNumber] = useState('');
+        const { actions, setActions} = useContext(ActionsContext);
+
+        const scan = useCallback(async() => {
+            // console.log("scan function");
+            // console.log("actions is", actions.scan === "scanned");
+            if (actions.scan === "scanned") {
+                console.log("alr scanned, do nothing");
+            } else {
+                if ('NDEFReader' in window) {
+                    try {
+                        console.log("first thing in scan function");
+                        const ndef = new window.NDEFReader();
+                        await ndef.scan();
+
+                        console.log("Scan started successfully.");
+                        ndef.onreadingerror = () => {
+                            console.log("Cannot read data from the NFC tag. Try another one?");
+                        };
+
+                        ndef.onreading = event => {
+                            console.log("NDEF message read.");
+                            onReading(event);
+                            setActions({
+                                scan: 'scanned',
+                                write: null
+                            });
+                        };
+
+                    } catch(error){
+                        console.log(`Error! Scan failed to start: ${error}.`);
+                    }
+                } else {
+                    console.log("ndef reader not in window");
+                }
+            }
+        },[setActions]);
+
+        const onReading = ({message, serialNumber}) => {
+            console.log("onreading");
+            setSerialNumber(serialNumber);
+            for (const record of message.records) {
+                switch (record.recordType) {
+                    case "text":
+                        console.log("record encoding", record);
+
+                        const textDecoder = new TextDecoder(record.encoding);
+                        setMessage(textDecoder.decode(record.data));
+                        setmiUUID(textDecoder.decode(record.data));
+
+                        console.log("record data is", textDecoder.decode(record.data));
+                        buttonRef.current.click();
+                        break;
+                    case "url":
+                        // TODO: Read URL record with record data.
+                        break;
+                    default:
+                    // TODO: Handle other records with record data.
+                }
+            }
+        };
+
+        useEffect(() => {
+            scan();
+        }, [scan]);
+
+        console.log("NFC Tag read successfully ", serialNumber, message);
+        return(
+            <>
+                {actions.scan === 'scanned' ?
+                    <div>
+                        {/*<p>Serial Number: {serialNumber}</p>*/}
+                        {/*<p>Message: {message}</p>*/}
+                    </div>
+                    :
+                    <Scanner status={actions.scan}></Scanner> }
+            </>
+        );
+    };
+    const onHandleAction = (actions) =>{
+        console.log("handle action scan");
+        setActions({...actions});
+    }
+
+
+    const buttonRef = useRef(null)
+
     return (
         <div
             style={{
@@ -1472,12 +1578,29 @@ const RecyclingFac = () => {
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}>
+
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                style = {{
+                                    marginRight: '5px',
+                                }}
+                                onClick={()=>onHandleAction({scan: 'scanning', write: null})}
+                                className="btn">
+                                Scan
+                            </Button>
+                        <ActionsContext.Provider value={actionsValue}>
+                            {scan && <Scan/>}
+                        </ActionsContext.Provider>
                         <Button
+                            ref = { buttonRef }
                             type="submit"
                             // fullWidth
                             variant="contained"
                             color="primary"
                             style = {{
+                                marginLeft: '5px',
+
                             }}
                         >
                             Submit
@@ -1494,7 +1617,7 @@ const RecyclingFac = () => {
 
 }
 
-const RecyclingFacPrint = () => {
+const RecyclingFacNext = () => {
 
     let navigate = useNavigate();
 
@@ -1516,11 +1639,7 @@ const RecyclingFacPrint = () => {
 
             }).catch(error => {
             console.log("error while sending request", error);
-
-
-
         });
-
 
         instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
@@ -1536,10 +1655,6 @@ const RecyclingFacPrint = () => {
         });
     }, []);
 
-    const componentRef = useRef();
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-    });
 
 
     return (
@@ -1565,13 +1680,6 @@ const RecyclingFacPrint = () => {
                 <CssBaseline />
                 <h2>Items will be auto sorted to its required category.</h2>
 
-                {/*<div style = {{*/}
-                {/*    alignItems: 'center',*/}
-                {/*    justifyContent: 'center',*/}
-                {/*    // // display: 'flex',*/}
-                {/*    // fontSize: '20px',*/}
-                {/*    // padding: '5px',*/}
-                {/*}}>*/}
                 <img src={image}      style={{ alignSelf: 'center' }}
                      width={250} height={250} alt="sorting" />
 
@@ -1620,7 +1728,7 @@ function App() {
                 <Route path="/m/print" element={<ManufacturerPrint/>}/>
 
                 <Route path="/rf" element={<RecyclingFac/>}/>
-                <Route path="/rf/print" element={<RecyclingFacPrint/>}/>
+                <Route path="/rf/next" element={<RecyclingFacNext/>}/>
 
                 {/*<Route path="/addupcoming" element={<AddUpcoming />} />*/}
             </Routes>
