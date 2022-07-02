@@ -39,11 +39,12 @@ import {QrReader} from "react-qr-reader";
 // import {useCallback, useContext} from "types/react";
 import Scanner from "./components/Scanner/Scanner";
 import Writer from "./components/Writer/Writer";
+import Write from "./containers/Write";
 
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `https://192.168.75.131:8081`
+const backendURL = `https://192.168.68.122:8081`
 
 const Home = () => {
 
@@ -311,30 +312,12 @@ const MetalProductionPrint = () => {
 
     const actionsValue = {actions,setActions};
 
-
-    const Write = () => {
-        console.log("write function");
-
-        const onWrite = async(message) => {
-            try {
-                const ndef = new window.NDEFReader();
-                // This line will avoid showing the native NFC UI reader
-                await ndef.scan();
-                await ndef.write({records: [{ recordType: "text", data: message }]});
-                alert(`Value Saved!`);
-            } catch (error) {
-                console.log(error);
-            }
-        }
-
-        return (
-            <Writer writeFn={onWrite}/>
-        );
-    };
-
     const onHandleAction = (actions) =>{
-        console.log("handle action scan");
+        console.log("handle action scan", actions);
         setActions({...actions});
+        console.log("write is ", write);
+        console.log("scan is ", scan);
+
     }
 
     useEffect(() => {
@@ -359,6 +342,24 @@ const MetalProductionPrint = () => {
         content: () => componentRef.current,
     });
 
+    const onWrite = async(message) => {
+        console.log("message", message);
+        try {
+            // if ('NDEFReader' in window) {
+            console.log("ndef in window");
+            const ndef = new window.NDEFReader();
+            // This line will avoid showing the native NFC UI reader
+            await ndef.scan();
+            await ndef.write({records: [{recordType: "text", data: message}]});
+            alert(`Value Saved!`);
+            // }
+            // else {
+            //     console.log("ndef reader not in window");
+            // }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <div
@@ -426,16 +427,31 @@ const MetalProductionPrint = () => {
                             margin: "10px"
 
                         }}
-                        onClick={()=>onHandleAction({scan: null, write: 'writing'})}
+                        onClick={()=>onWrite(srUUID)}
                     >
                         Write NFC
                     </Button>
-                <center>
-                    <ActionsContext.Provider value={actionsValue}>
-                        {/*{scan && <Scan/>}*/}
-                        {write && <Write/>}
-                    </ActionsContext.Provider>
-                </center>
+
+                    {/*<Button*/}
+                    {/*    type="submit"*/}
+                    {/*    // fullWidth*/}
+                    {/*    variant="contained"*/}
+                    {/*    color="primary"*/}
+                    {/*    style = {{*/}
+                    {/*        margin: "10px"*/}
+
+                    {/*    }}*/}
+                    {/*    onClick={()=>onHandleAction({scan: null, write: 'writing'})}*/}
+                    {/*>*/}
+                    {/*    Write NFC*/}
+                    {/*</Button>*/}
+                {/*<center>*/}
+                {/*    <ActionsContext.Provider value={actionsValue}>*/}
+                {/*        /!*{scan && <Scan/>}*!/*/}
+
+                {/*        {write && <Write/>}*/}
+                {/*    </ActionsContext.Provider>*/}
+                {/*</center>*/}
                 </div>
 
 
@@ -473,7 +489,11 @@ const Manufacturer = () => {
         const { actions, setActions} = useContext(ActionsContext);
 
         const scan = useCallback(async() => {
-            console.log("scan function");
+            // console.log("scan function");
+            // console.log("actions is", actions.scan === "scanned");
+            if (actions.scan === "scanned") {
+                console.log("alr scanned, do nothing");
+            } else {
             if ('NDEFReader' in window) {
                 try {
                     console.log("first thing in scan function");
@@ -496,9 +516,10 @@ const Manufacturer = () => {
 
                 } catch(error){
                     console.log(`Error! Scan failed to start: ${error}.`);
-                };
+                }
             } else {
                 console.log("ndef reader not in window");
+            }
             }
         },[setActions]);
 
@@ -509,9 +530,10 @@ const Manufacturer = () => {
                     case "text":
                         const textDecoder = new TextDecoder(record.encoding);
                         setMessage(textDecoder.decode(record.data));
-                        setSRUUID(record.data);
-                        console.log("record data is", record.data);
+                        setSRUUID(textDecoder.decode(record.data));
 
+                        console.log("record data is", textDecoder.decode(record.data));
+                        buttonRef.current.click();
                         break;
                     case "url":
                         // TODO: Read URL record with record data.

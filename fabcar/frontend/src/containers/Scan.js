@@ -10,6 +10,7 @@ const Scan = () => {
     const scan = useCallback(async() => {
         console.log("scan function");
         if ('NDEFReader' in window) {
+            console.log("actions is", actions);
             try {
                 console.log("first thing in scan function");
                 const ndef = new window.NDEFReader();
