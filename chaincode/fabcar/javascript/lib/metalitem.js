@@ -31,7 +31,7 @@ class MetalItem extends Contract {
         return metalItemAsBytes.toString();
     }
 
-    async createMetalItem(ctx, id, sourcerecordid, itemname) {
+    async createMetalItem(ctx, id, sourcerecordid, itemname, createdby, createdate) {
 
         console.info('============= START : Create MI ===========');
 
@@ -40,6 +40,8 @@ class MetalItem extends Contract {
             docType: "metalitem",
             sourcerecordid,
             itemname,
+            createdby,
+            createdate,
         };
 
         console.log(metalitem)

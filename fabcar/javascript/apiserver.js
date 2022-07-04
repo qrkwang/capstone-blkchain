@@ -18,8 +18,8 @@ const { v4: uuidv4 } = require('uuid');
 
 
 const options = {
-        key: fs.readFileSync('../certs/localhost-key.pem'),
-        cert: fs.readFileSync('../certs/localhost.pem')
+        key: fs.readFileSync('../certs/key1.pem'),
+        cert: fs.readFileSync('../certs/cert1.pem')
 }
 
 
@@ -38,8 +38,10 @@ app.get('/api/queryall', async function (req, res)  {
 
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
+
+
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
@@ -56,10 +58,10 @@ app.get('/api/queryall', async function (req, res)  {
 
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAll');
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
 
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
 
         // Disconnect from the gateway.
@@ -71,11 +73,88 @@ app.get('/api/queryall', async function (req, res)  {
     }
 });
 
+app.post('/api/queryidentity/', async function (req, res)  {
+        
+        // const paramId = req.params.wallet_user;
+        // const privateKey = req.params.privatekey;
+        
+        const walletUser = req.body.walletuser;
+        const privateKey = req.body.privatekey;
+        console.log("queryidentity");
+        console.log("wallet user", walletUser);
+        console.log("private key", privateKey);
+
+    try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+
+      
+        const identity = await wallet.get(walletUser);
+
+
+        // Check to see if we've already enrolled the user.
+        if (!identity) {
+                console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
+                console.log('Run the registerUser.js application before retrying');
+                res.status(301).send("Does not exist");
+        } else {
+                console.log("exist");
+                let walletPrivateKey = identity.credentials.privateKey.replace("-----BEGIN PRIVATE KEY-----", "")
+                walletPrivateKey = walletPrivateKey.replace("-----END PRIVATE KEY-----", "");
+                walletPrivateKey = walletPrivateKey.replace(/\r?\n?/g, '')
+
+                console.log("privateKey", walletPrivateKey);
+                
+                if (privateKey === walletPrivateKey) {
+                        console.log("same private key");
+                        res.status(201).send("Same Private Key");
+                } else {
+                        res.status(302).send("Wrong private key");
+
+                }
+
+        }
+
+        // // Create a new gateway for connecting to our peer node.
+        // const gateway = new Gateway();
+        // await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // // Get the network (channel) our contract is deployed to.
+        // const network = await gateway.getNetwork('mychannel');
+
+        // // Get the contract from the network.
+        // const contract = network.getContract('mychain', 'Generic');
+
+        // // Evaluate the specified transaction.
+        // const result = await contract.evaluateTransaction('queryAll');
+        // // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+
+
+        // // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        // res.status(200).json({response: result.toString()});
+
+        // // Disconnect from the gateway.
+        // await gateway.disconnect();
+        
+    } catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        process.exit(1);
+    }
+});
 //GENERIC RECORD ============================== END ======================================
 
 //SOURCE RECORD ============================== START ======================================
 
 app.get('/api/queryallsr', async function (req, res)  {
+        const identityStr = "metalProductionUser"
+
         console.log("queryallsr");
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -88,13 +167,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -119,6 +198,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 app.get('/api/querysr/:sr_index', async function (req, res) {
         console.log("query single sr");
+        const identityStr = "metalProductionUser"
 
         paramId = req.params.sr_index;
 
@@ -131,15 +211,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const identity = await wallet.get('appUser');
+        const identity = await wallet.get(identityStr);
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -169,6 +249,8 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 app.post('/api/addsr/', async function (req, res) {
         console.log("addsr");
 
+        const identityStr = "metalProductionUser"
+
         const metalpurity = req.body.metalpurity;
         const metalname = req.body.metalname;
         const sourcename = req.body.sourcename;
@@ -186,15 +268,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const identity = await wallet.get('appUser');
+        const identity = await wallet.get(identityStr);
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -206,8 +288,19 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
         const srUUID = uuidv4()+"";
 
+        //Date
+        const timestamp = new Date().getTime();
+        console.log(timestamp); // 1642664853302
+
+        const date = new Date(timestamp).toLocaleString('en-SG', {
+                timeZone: 'Asia/Singapore',
+                hour12: false
+
+        })
+        console.log(date); //  Thu Jan 20 2022 09:48:00
+
         console.log("submitting transaction");
-        await contract.submitTransaction('createSourceRecord', srUUID, metalpurity, metalname, sourcename);
+        await contract.submitTransaction('createSourceRecord', srUUID, metalpurity, metalname, sourcename, identityStr, date );
         console.log('Transaction has been submitted');
         res.status(201).send({text: 'Transaction has been submitted', uuid: srUUID});
 // Disconnect from the gateway.
@@ -224,6 +317,9 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 //METAL ITEM ============================== START ======================================
 app.get('/api/queryallmi', async function (req, res)  {
+        
+        const identityStr = "manufacturerUser"
+
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -233,15 +329,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const identity = await wallet.get('appUser');
+        const identity = await wallet.get(identityStr);
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -269,6 +365,9 @@ app.get('/api/querymi/:mi_index', async function (req, res) {
         console.log("query mi");
         paramId = req.params.mi_index;
         console.log("param id", paramId);
+
+        const identityStr = "manufacturerUser"
+
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -280,13 +379,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -307,6 +406,9 @@ app.get('/api/querymiandmc/:mi_index', async function (req, res) {
         console.log("query mi and mc");
         paramId = req.params.mi_index;
         console.log("param id", paramId);
+        
+        const identityStr = "manufacturerUser"
+
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -318,13 +420,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         let network = await gateway.getNetwork('mychannel');
@@ -358,6 +460,9 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
 
 app.post('/api/addmi/', async function (req, res) {
+
+        const identityStr = "manufacturerUser"
+
         const itemname = req.body.itemname;
         const sourcerecordid = req.body.sourcerecordid;
         // const itemname = "Metal Can"
@@ -377,16 +482,27 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
+
+        //Date
+        const timestamp = new Date().getTime();
+        console.log(timestamp); // 1642664853302
+
+        const date = new Date(timestamp).toLocaleString('en-SG', {
+                timeZone: 'Asia/Singapore',
+                hour12: false
+
+        })
+
         // Check to see if we've already enrolled the user.
-        const identity = await wallet.get('appUser');
+        const identity = await wallet.get(identityStr);
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
 
 
@@ -400,7 +516,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         let metalItemUUID = uuidv4()+"";
         console.log("submitting transaction for metal item with uuid ", metalItemUUID);
 
-        await contract.submitTransaction('createMetalItem', metalItemUUID, sourcerecordid, itemname);
+        await contract.submitTransaction('createMetalItem', metalItemUUID, sourcerecordid, itemname, identityStr, date);
         console.log('Transaction has been submitted');
 
         // console.log("contract after submit", contract);
@@ -418,7 +534,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
           console.log('percentage: ' + item.percentage);
 
           console.log("submitting transaction for metal composition");
-        await contract.submitTransaction('createMetalComposition', uuidv4()+"", item.name, item.percentage, metalItemUUID);
+        await contract.submitTransaction('createMetalComposition', uuidv4()+"", item.name, item.percentage, metalItemUUID, identityStr, date);
        // const mcResult = await contract.evaluateTransaction('queryMCByMI', metalItemUUID);
         // console.log(`MC has been evaluated, result is ${mcResult.toString()}`);
         });
@@ -440,6 +556,9 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 //METAL COMPOSITION ============================== START ======================================
 
 app.get('/api/queryallmc', async function (req, res)  {
+
+        const identityStr = "manufacturerUser"
+
         console.log("queryallmc");
     try {
 const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -452,13 +571,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -480,6 +599,8 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 });
 
 app.get('/api/querymcbymi/:mi_index', async function (req, res) {
+        const identityStr = "manufacturerUser"
+
         console.log("query mc by mi");
         paramId = req.params.mi_index;
         console.log("param", paramId);
@@ -495,13 +616,13 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get('appUser');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user ' + identityStr +' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
   // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');

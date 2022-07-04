@@ -25,7 +25,7 @@ class SourceRecord extends Contract {
         return sourceRecordAsBytes.toString();
     }
 
-    async createSourceRecord(ctx, id, metalpurity, metalname, sourcename) {
+    async createSourceRecord(ctx, id, metalpurity, metalname, sourcename,createdby, createdate) {
         console.info('============= START : Create SR ===========');
 
         const sourceRecord = {
@@ -34,6 +34,8 @@ class SourceRecord extends Contract {
             metalname,
             metalpurity,
             sourcename,
+            createdby,
+            createdate,
         };
 
         await ctx.stub.putState(id, Buffer.from(JSON.stringify(sourceRecord)));

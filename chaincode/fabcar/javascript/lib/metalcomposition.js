@@ -26,7 +26,7 @@ class MetalComposition extends Contract {
         return metalCompositionAsBytes.toString();
     }
 
-    async createMetalComposition(ctx, id, name, percentage, metalitemid) {
+    async createMetalComposition(ctx, id, name, percentage, metalitemid, createdby, createdate) {
 
         console.info('============= START : Create MC ===========');
 
@@ -36,6 +36,8 @@ class MetalComposition extends Contract {
             name,
             percentage,
             metalitemid,
+            createdby,
+            createdate,
         };
 
         console.log(metalcomposition)
