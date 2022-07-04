@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import React, { useRef } from 'react';
 import ReactToPrint, {useReactToPrint} from 'react-to-print';
+import { DataGrid } from '@mui/x-data-grid';
 
 import ReactDOM from "react-dom";
 
@@ -69,6 +70,7 @@ const MetalProduction = () => {
     const [metalname, setMetalName] = useState("");
     const [metalpurity, setMetalPurity] = useState("");
     const [sourcename, setSourceName] = useState("");
+
 
     //Modal Dialog
     const [open, setOpen] = useState(false);
@@ -301,6 +303,8 @@ const MetalProductionPrint = () => {
     const [metalpurity, setMetalPurity] = useState("");
     const [sourcename, setSourceName] = useState("");
     const [srUUID, setSRUUID] = useState("");
+    const [createdat, setCreatedAt] = useState("");
+    const [createdby, setCreatedBy] = useState("");
 
     //Modal Dialog
     const [open, setOpen] = useState(false);
@@ -319,6 +323,8 @@ const MetalProductionPrint = () => {
                 setMetalPurity(responseObj.metalpurity);
                 setSourceName(responseObj.sourcename);
                 setSRUUID(responseObj.id);
+                setCreatedAt(responseObj.createdate);
+                setCreatedBy(responseObj.createdby);
 
             });
 
@@ -392,6 +398,8 @@ const MetalProductionPrint = () => {
                     <h3>Metal Name: {metalname}</h3>
                     <h3>Metal Purity: {metalpurity}</h3>
                     <h3>Source Name: {sourcename}</h3>
+                    <h3>Created At: {createdat}</h3>
+                    <h3>Created By: {createdby}</h3>
 
                     <Button
                         type="submit"
@@ -797,6 +805,8 @@ const ManufacturerCreate = () => {
     const [metalpurity, setMetalPurity] = useState("");
     const [sourcename, setSourceName] = useState("");
     const [srUUID, setSRUUID] = useState("");
+    const [createdat, setCreatedAt] = useState("");
+    const [createdby, setCreatedBy] = useState("");
 
     const [inputFields, setInputFields] = useState([
         { id: uuidv4(), name: '', percentage: '' },
@@ -813,7 +823,8 @@ const ManufacturerCreate = () => {
                 setMetalPurity(responseObj.metalpurity);
                 setSourceName(responseObj.sourcename);
                 setSRUUID(responseObj.id);
-
+                setCreatedAt(responseObj.createdate);
+                setCreatedBy(responseObj.createdby);
             });
 
 
@@ -842,7 +853,6 @@ const ManufacturerCreate = () => {
     }
 
     const handleViewSR = () => {
-        console.log("test");
         setPageContent("viewSR");
         setOpen(true);
     }
@@ -972,6 +982,9 @@ const ManufacturerCreate = () => {
                                     <h3>Metal Name: {metalname}</h3>
                                     <h3>Metal Purity: {metalpurity}</h3>
                                     <h3>Source Name: {sourcename}</h3>
+                                    <h3>Created At: {createdat}</h3>
+                                    <h3>Created By: {createdby}</h3>
+
                                 </div>
                         )
                         : pageContent === "empty" ? (
@@ -1141,10 +1154,26 @@ const ManufacturerPrint = () => {
     //Form
     const [miUUID, setMIUUID] = useState("");
     const [itemname, setItemName] = useState("");
+    const [createdat, setCreatedAt] = useState("");
+    const [createdby, setCreatedBy] = useState("");
+
     const [metalcompositionArray, setMetalCompositionArray] = useState([]);
 
     useEffect( () => {
-        console.log("getting mi details");
+        console.log("getting mi & mc details");
+
+        // instance.get(backendURL + `/api/querymiandmc/` + localStorage.getItem("miUUID"))
+        //     .then((res) => {
+        //         const miObj = JSON.parse(res.data.mi);
+        //         const mcObj = JSON.parse(res.data.mc);
+        //         console.log("response", res.data);
+        //         // const responseObj = JSON.parse(res.data.response);
+        //         // console.log("res data", responseObj);
+        //         setItemName(miObj.itemname);
+        //         setMIUUID(miObj.id);
+        //         setMetalCompositionArray(mcObj)
+        //     }).catch(error => {
+        //     console.log("error while sending request", error);
 
         instance.get(backendURL + `/api/querymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
@@ -1152,6 +1181,8 @@ const ManufacturerPrint = () => {
                 console.log("res data", responseObj);
                 setItemName(responseObj.itemname);
                 setMIUUID(responseObj.id);
+                setCreatedAt(responseObj.createdate);
+                setCreatedBy(responseObj.createdby);
 
             }).catch(error => {
             console.log("error while sending request", error);
@@ -1252,6 +1283,8 @@ const ManufacturerPrint = () => {
                         viewBox={`0 0 256 256`}
                     />
                 </div>
+
+
                 <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%" }}>
 
                     <h3>Metal Item ID: {miUUID}</h3>
@@ -1261,13 +1294,16 @@ const ManufacturerPrint = () => {
                         // console.log("mc item", mcItem.Record.percentage);
 
                         return (
-                          <div>
+                          <div key = {index}>
                           <h3>Material Name: {mcItem.Record.name}</h3>
                           <h3>Material Percentage: {mcItem.Record.percentage}</h3>
                           </div>
 
                     )
                     })}
+                    <h3>Created At: {createdat}</h3>
+                    <h3>Created By: {createdby}</h3>
+
                     {/*<h3>Material Name: {metalpurity}</h3>*/}
                     {/*<h3>Material Percentage: {sourcename}</h3>*/}
 
@@ -1625,6 +1661,9 @@ const RecyclingFacNext = () => {
     //Form
     const [miUUID, setMIUUID] = useState("");
     const [itemname, setItemName] = useState("");
+    const [createdat, setCreatedAt] = useState("");
+    const [createdby, setCreatedBy] = useState("");
+
     const [metalcompositionArray, setMetalCompositionArray] = useState([]);
 
     useEffect(() => {
@@ -1636,6 +1675,8 @@ const RecyclingFacNext = () => {
                 console.log("res data", responseObj);
                 setItemName(responseObj.itemname);
                 setMIUUID(responseObj.id);
+                setCreatedAt(responseObj.createdate);
+                setCreatedBy(responseObj.createdby);
 
             }).catch(error => {
             console.log("error while sending request", error);
@@ -1700,6 +1741,10 @@ const RecyclingFacNext = () => {
 
                         )
                     })}
+
+                    <h3>Created At: {createdat}</h3>
+                    <h3>Created By: {createdby}</h3>
+
                     {/*<h3>Material Name: {metalpurity}</h3>*/}
                     {/*<h3>Material Percentage: {sourcename}</h3>*/}
                     
@@ -1714,6 +1759,448 @@ const RecyclingFacNext = () => {
 
 }
 
+const AdminAccess = () => {
+    let navigate = useNavigate();
+
+    //Form
+    const [walletname, setWalletName] = useState("");
+    const [privatekey, setPrivateKey] = useState("");
+
+    //Modal Dialog
+    const [open, setOpen] = useState(false);
+    const [pageContent, setPageContent] = useState("");
+
+    function areFieldsEmpty() {
+        if (walletname !== "" && privatekey !== "") {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    const handleDialogClose = () => {
+        setOpen(false);
+        resetFields();
+    };
+
+
+    const resetFields = () => {
+        setWalletName("");
+        setPrivateKey("");
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("handlesubmit");
+        console.log("fields are %s %s %s", walletname, privatekey);
+
+        if (!areFieldsEmpty()) {
+
+            const obj = {
+                walletname: walletname,
+                privatekey: privatekey,
+
+            };
+
+            instance.post(backendURL + `/api/queryidentity`, obj)
+                .then(res => {
+                    // console.log(res);
+                    console.log(res.data);
+                    console.log("response code is " , res.status);
+
+                    if (res.status === 201) {
+                        setPageContent("201");
+                        setOpen(true);
+                        console.log("code 201");
+                        localStorage.setItem("walletname", walletname); // The returned data obj contains userId
+                        navigate(`/admin/records`);
+
+                    }
+                }).catch(error => {
+                // console.log("error while sending request", error);
+
+                console.log("error while sending request", error.response.status);
+
+                if (error.response.status = "302") {
+                    console.log("wrong private key");
+                    setPageContent("302")
+                    setOpen(true);
+                } else if (error.response.status = "301") {
+                    console.log("wallet identity not found");
+                    setPageContent("301")
+                    setOpen(true);
+                }
+                else {
+                    setPageContent("admin")
+                    setOpen(true);
+                }
+
+            });
+
+        } else {
+            setPageContent("empty");
+            setOpen(true);
+        }
+    }
+
+    function renderDialogContent() {
+        // console.log("pagecontent is ", pageContent);
+
+        return (
+            <Dialog style={{}}
+                    fullWidth={true}
+                    maxWidth={'lg'}
+                    open={open}
+                    onClose={ ()=> setOpen(false)}
+            >
+                <div style={{backgroundColor: '#DFE2D7',}}>
+                    <DialogTitle sx={{marginBottom: -1,}}>
+                        {pageContent === "500" ? (
+                                <div style={{color: 'gray'}}>Cannot connect to network server</div>
+                            )
+                            : pageContent === "201" ? (
+                                    <div style={{color: 'gray'}}>Identity Verified</div>
+                                )
+                                : pageContent === "empty" ? (
+                                    <div style={{color: 'gray'}}>Empty fields</div>
+                                ) : (
+                                    <div style={{color: 'gray'}}>Something went wrong</div>
+                                )
+                        }
+                    </DialogTitle>
+                </div>
+                <DialogContent>
+                    {pageContent === "500" ? (
+                        <div>
+                            <p>There is a connection error to the network server. Please contact the administrator or try again later.</p>
+                        </div>
+                        ) : pageContent === "201" ? (
+                            <div>
+                                <p>Identity Verified.</p>
+                            </div>
+                        ) : pageContent === "301" ? (
+                        <div>
+                            <p>Wallet not found.</p>
+                        </div>
+                        ) : pageContent === "302" ? (
+                            <div>
+                                <p>Private key entered is wrong.</p>
+                            </div>
+                        )
+                        : pageContent === "empty" ? (
+                            <div>
+                                <p>Please fill in all fields before submitting.</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <p>Please contact the administrator.</p>
+                            </div>
+                        )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={ () => setOpen(false)}>Okay</Button>
+                </DialogActions>
+            </Dialog>
+        );
+
+    }
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh',
+            }}
+        >
+            <Container component="main" maxWidth="xs" style={{ }}>
+                <CssBaseline />
+                <div style = {{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display: 'flex',
+                    fontSize: '20px',
+                    padding: '5px',
+                }}>
+                    Verify your identity
+                </div>
+                <form
+
+                    // className={useStyles.form}
+                    noValidate
+                    onSubmit={(e) => handleSubmit(e)}
+                >
+
+                    <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="walletname"
+                        label="Wallet Name"
+                        value={walletname}
+                        onChange={(e) => setWalletName(e.target.value)}
+                        size="normal"
+                        InputProps={{ style: { fontSize: '20px' } }}
+                        InputLabelProps={{ style: { fontSize: '20px' }, shrink: true, }}
+                    />
+
+                    <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="privatekey"
+                        label="Private Key"
+                        value={privatekey}
+                        onChange={(e) => setPrivateKey(e.target.value)}
+                        size="normal"
+                        InputProps={{ style: { fontSize: '20px' } }}
+                        InputLabelProps={{ style: { fontSize: '20px' }, shrink: true, }}
+                    />
+
+                    <div style = {{
+                        display: 'flex',
+                        marginTop:'20px',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <Button
+                            type="submit"
+                            // fullWidth
+                            variant="contained"
+                            color="primary"
+                            style = {{
+                            }}
+                        >
+                            Submit
+                        </Button>
+                    </div>
+
+                </form>
+                {renderDialogContent()}
+
+            </Container>
+        </div>
+
+    );
+
+}
+
+const ViewTransactionRecords = () => {
+    let navigate = useNavigate();
+    //Modal Dialog
+    const [open, setOpen] = useState(false);
+    const [pageContent, setPageContent] = useState("");
+    const [authenticated, setAuthenticated] = useState(false);
+
+    //Storage Array
+    const [sourceRecords, setSourceRecords] = useState([]);
+    const [metalItems, setMetalItems] = useState([]);
+    const [metalCompositions, setMetalCompositions] = useState([]);
+
+    //Column definitions
+    const srcols = [
+        { field: 'id', headerName: 'SR ID', width: 300 },
+        { field: 'metalname', headerName: 'Metal Name', width: 200 },
+        { field: 'metalpurity', headerName: 'Metal Purity', width: 200 },
+        { field: 'createdby', headerName: 'Created By', width: 200},
+        {
+            field: 'createdate',
+            headerName: 'Created',
+            type: 'date',
+            width: 200,
+        },
+
+    ];
+
+    const micols = [
+        { field: 'id', headerName: 'MI ID', width: 300 },
+        { field: 'itemname', headerName: 'Item Name', width: 200 },
+        { field: 'sourcerecordid', headerName: 'Source Record ID', width: 200 },
+        { field: 'createdby', headerName: 'Created By', width: 200},
+        {
+            field: 'createdate',
+            headerName: 'Created',
+            type: 'date',
+            width: 200,
+        },
+
+    ];
+    const mccols = [
+        { field: 'id', headerName: 'MC ID', width: 300 },
+        { field: 'name', headerName: 'Composition Name', width: 200 },
+        { field: 'percentage', headerName: 'Percentage', width: 200 },
+        { field: 'metalitemid', headerName: 'Metal Item ID', width: 200 },
+        { field: 'createdby', headerName: 'Created By', width: 200},
+        {
+            field: 'createdate',
+            headerName: 'Created',
+            type: 'date',
+            width: 200,
+        },
+
+    ];
+
+    const modalClose = () => {
+        setOpen(false);
+        navigate(`/admin/`);
+
+    }
+    useEffect(() => {
+
+        console.log("walletname is", localStorage.getItem("walletname"))
+
+        instance.get(backendURL + `/api/queryall/` + localStorage.getItem("walletname"))
+            .then((res) => {
+                const responseObj = JSON.parse(res.data.response);
+                console.log("res data", responseObj);
+                if (res.status === 200) {
+                    // console.log("authenticated true");
+                    setAuthenticated(true);
+
+                    responseObj.forEach((item) => {
+                        console.log("item ", item.Record);
+
+                        const itemRecordType = item.Record.docType;
+
+                        //Store retrieved items in array of json objects
+                        if (itemRecordType === "sourcerecord") {
+                            sourceRecords.push(item.Record);
+                        } else if (itemRecordType === "metalitem") {
+                            metalItems.push(item.Record);
+                        } else if (itemRecordType === "metalcomposition") {
+                            metalCompositions.push(item.Record);
+                        } else {
+                            console.log("item is not of any recognized record type");
+                        }
+
+                    });
+
+                }
+            }).catch(error => {
+
+            console.log("error while sending request", error.response.status);
+
+            if (error.response.status = "301") {
+                console.log("wallet identity not found");
+                setPageContent("301")
+                setOpen(true);
+            }
+            else {
+                setPageContent("admin")
+                setOpen(true);
+            }
+            ;
+
+        });
+
+    }, []);
+
+    function renderDialogContent() {
+        // console.log("pagecontent is ", pageContent);
+
+        return (
+            <Dialog style={{}}
+                    fullWidth={true}
+                    maxWidth={'lg'}
+                    open={open}
+                    onClose={ ()=> modalClose()}
+            >
+                <div style={{backgroundColor: '#DFE2D7',}}>
+                    <DialogTitle sx={{marginBottom: -1,}}>
+                        {pageContent === "500" ? (
+                                <div style={{color: 'gray'}}>Cannot connect to network server</div>
+                            )
+                               : (
+                                    <div style={{color: 'gray'}}>Something went wrong</div>
+                                )
+                        }
+                    </DialogTitle>
+                </div>
+                <DialogContent>
+                    {pageContent === "500" ? (
+                        <div>
+                            <p>There is a connection error to the network server. Please contact the administrator or try again later.</p>
+                        </div>
+                    )
+
+                     : pageContent === "301" ? (
+                            <div>
+                                <p>No permission to access this.</p>
+                            </div>
+                        )
+                     : (
+                        <div>
+                            <p>Please contact the administrator.</p>
+                        </div>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={ () => modalClose()}>Back</Button>
+                </DialogActions>
+            </Dialog>
+        );
+
+    }
+
+    return (
+
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            {renderDialogContent()}
+            {authenticated &&
+            <Container component="main" maxWidth="xm" style={{ }}>
+                <CssBaseline />
+                <div style = {{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    // display: 'flex',
+                    fontSize: '20px',
+                    padding: '5px',
+                }}>
+                    <h2>Source Records Data</h2>
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={sourceRecords}
+                            columns={srcols}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            disableSelectionOnClick
+                        />
+                    </div>
+                    <h2>Metal Items Data</h2>
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={metalItems}
+                            columns={micols}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            disableSelectionOnClick
+                        />
+                    </div>
+                    <h2>Metal Compositions Data</h2>
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={metalCompositions}
+                            columns={mccols}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            disableSelectionOnClick
+                        />
+                    </div>
+                </div>
+            </Container>
+            }
+        </div>
+
+    );
+
+}
 
 function App() {
     return (
@@ -1729,6 +2216,9 @@ function App() {
 
                 <Route path="/rf" element={<RecyclingFac/>}/>
                 <Route path="/rf/next" element={<RecyclingFacNext/>}/>
+
+                <Route path="/admin" element={<AdminAccess/>}/>
+                <Route path="/admin/records" element={<ViewTransactionRecords/>}/>
 
                 {/*<Route path="/addupcoming" element={<AddUpcoming />} />*/}
             </Routes>
