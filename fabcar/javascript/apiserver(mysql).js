@@ -10,17 +10,9 @@ app.use(cors({
 }));
 
 
-// Setting for Hyperledger Fabric
-const { Gateway,Wallets } = require('fabric-network');
-const path = require('path');
-const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 
-const options = {
-        key: fs.readFileSync('../certs/key1.pem'),
-        cert: fs.readFileSync('../certs/cert1.pem')
-}
 
 
 //GENERIC  ============================== START ======================================
@@ -67,7 +59,7 @@ app.get('/api/queryall/:wallet_user', async function (req, res)  {
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
         if (result.toString() === "403"){
-                res.status(301).send("nopermission");
+                res.status(403).send("nopermission");
 
         } else {
                 res.status(200).json({response: result.toString()});
@@ -126,7 +118,7 @@ app.post('/api/queryidentity/', async function (req, res)  {
                 walletPrivateKey = walletPrivateKey.replace("-----END PRIVATE KEY-----", "");
                 walletPrivateKey = walletPrivateKey.replace(/\r?\n?/g, '')
 
-                console.log("privateKey", walletPrivateKey);
+                // console.log("privateKey", walletPrivateKey);
                 
                 if (privateKey === walletPrivateKey) {
                         console.log("same private key");
@@ -138,6 +130,26 @@ app.post('/api/queryidentity/', async function (req, res)  {
 
         }
 
+        // // Create a new gateway for connecting to our peer node.
+        // const gateway = new Gateway();
+        // await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+
+        // // Get the network (channel) our contract is deployed to.
+        // const network = await gateway.getNetwork('mychannel');
+
+        // // Get the contract from the network.
+        // const contract = network.getContract('mychain', 'Generic');
+
+        // // Evaluate the specified transaction.
+        // const result = await contract.evaluateTransaction('queryAll');
+        // // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+
+
+        // // console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        // res.status(200).json({response: result.toString()});
+
+        // // Disconnect from the gateway.
+        // await gateway.disconnect();
         
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

@@ -11,10 +11,9 @@ const FabricCAServices = require('fabric-ca-client');
 const fs = require('fs');
 const path = require('path');
 
-async function main() {
+async function main(userToAdd, type) {
     try {
 
-        const userToAdd = 'manufacturerUser'
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
@@ -46,16 +45,31 @@ async function main() {
         // build a user object for authenticating with the CA
         const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
         const adminUser = await provider.getUserContext(adminIdentity, 'admin');
-
-        // Register the user, enroll the user, and import the new identity into the wallet.
-        const secret = await ca.register({
-            affiliation: 'org1.department1',
-            enrollmentID: userToAdd,
-            role: 'client'
-        }, adminUser);
+ 
+      
+        let secret = "";
+        if (type == 1) {
+           // Register the user, enroll the user, and import the new identity into the wallet.
+            secret = await ca.register({
+                affiliation: 'org1.department1',
+                enrollmentID: userToAdd,
+                role: 'client',
+                attrs: [{"name" : "accessRole", "value": "peer"}]
+            }, adminUser);
+        } else {
+            // Register the user, enroll the user, and import the new identity into the wallet.
+            secret = await ca.register({
+                affiliation: 'org1.department1',
+                enrollmentID: userToAdd,
+                role: 'client',
+                attrs: [{"name" : "accessRole", "value": "admin"}]
+            }, adminUser);
+        }
+     
         const enrollment = await ca.enroll({
             enrollmentID: userToAdd,
-            enrollmentSecret: secret
+            enrollmentSecret: secret,
+            attr_reqs: [{ name: "accessRole", optional: false}]
         });
         const x509Identity = {
             credentials: {
@@ -74,4 +88,7 @@ async function main() {
     }
 }
 
-main();
+
+main("appUser", 2)
+main("manufacturerUser", 1)
+main("metalProductionUser", 1);
