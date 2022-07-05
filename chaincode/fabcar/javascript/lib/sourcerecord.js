@@ -35,7 +35,7 @@ class SourceRecord extends Contract {
             metalpurity,
             sourcename,
             createdby,
-            createdate,
+            createdat,
         };
 
         await ctx.stub.putState(id, Buffer.from(JSON.stringify(sourceRecord)));

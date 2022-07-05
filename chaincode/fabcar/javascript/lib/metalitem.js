@@ -41,7 +41,7 @@ class MetalItem extends Contract {
             sourcerecordid,
             itemname,
             createdby,
-            createdate,
+            createdat,
         };
 
         console.log(metalitem)

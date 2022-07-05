@@ -37,7 +37,7 @@ class MetalComposition extends Contract {
             percentage,
             metalitemid,
             createdby,
-            createdate,
+            createdat,
         };
 
         console.log(metalcomposition)
