@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.9.3",
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.8.4",
+    "@mui/x-data-grid": "^5.12.3",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
@@ -24,9 +25,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-  "start":
-    "set HTTPS=true&&set SSL_CRT_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\cert1.pem&&set SSL_KEY_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\key1.pem&&react-scripts start",
-
+    "start": "set HTTPS=true&&set SSL_CRT_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\cert1.pem&&set SSL_KEY_FILE=C:\\Users\\Unkno\\Desktop\\Workspace\\capstone-blkchain\\fabcar\\certs\\key1.pem&&react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
