@@ -46,9 +46,9 @@ import Write from "./containers/Write";
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
 const backendURL = `https://192.168.68.122:8081`
+const mysqlBackend = false;
 
 const Home = () => {
-
   let navigate = useNavigate();
 
   return (
@@ -64,7 +64,6 @@ const Home = () => {
 const MetalProduction = () => {
 
     let navigate = useNavigate();
-
 
     //Form
     const [metalname, setMetalName] = useState("");
@@ -113,13 +112,21 @@ const MetalProduction = () => {
             instance.post(backendURL + `/api/addsr`, obj)
                 .then(res => {
                     // console.log(res);
-                    console.log(res.data);
+                    // console.log(res.data);
                     console.log("response code is " , res.status);
 
                     if (res.status === 201) {
                         setPageContent("201");
                         setOpen(true);
-                        localStorage.setItem("srUUID", res.data.uuid); // The returned data obj contains userId
+                        if (mysqlBackend) {
+                            console.log("srUUId is", res.data.insertId)
+                            localStorage.setItem("srUUID", res.data.insertId); // The returned data obj contains userId
+
+                        } else {
+                            console.log("srUUId is", res.data.uuid)
+
+                            localStorage.setItem("srUUID", res.data.uuid); // The returned data obj contains userId
+                        }
                         navigate(`/mpv/print`);
 
                     }
@@ -314,16 +321,22 @@ const MetalProductionPrint = () => {
 
     useEffect(() => {
 
-        // console.log("srUUID is", localStorage.getItem("srUUID"))
+        console.log("srUUID is", localStorage.getItem("srUUID"))
         instance.get(backendURL + `/api/querysr/` + localStorage.getItem("srUUID"))
             .then((res) => {
-                const responseObj = JSON.parse(res.data.response);
-                console.log("res data", responseObj);
+                let responseObj = ""
+                if (mysqlBackend) {
+                    console.log("res", res.data);
+                    responseObj = res.data[0];
+                } else {
+                    responseObj = JSON.parse(res.data.response);
+                    console.log("res data", responseObj);
+                }
                 setMetalName(responseObj.metalname);
                 setMetalPurity(responseObj.metalpurity);
                 setSourceName(responseObj.sourcename);
                 setSRUUID(responseObj.id);
-                setCreatedAt(responseObj.createdate);
+                setCreatedAt(responseObj.createdat);
                 setCreatedBy(responseObj.createdby);
 
             });
@@ -388,13 +401,13 @@ const MetalProductionPrint = () => {
                     <QRCode
                         size={256}
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        value={srUUID}
+                        value={srUUID.toString()}
                         viewBox={`0 0 256 256`}
                     />
                 </div>
                 <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%" }}>
 
-                <h3>Record ID: {srUUID}</h3>
+                <h3>Record ID: {srUUID.toString()}</h3>
                     <h3>Metal Name: {metalname}</h3>
                     <h3>Metal Purity: {metalpurity}</h3>
                     <h3>Source Name: {sourcename}</h3>
@@ -610,13 +623,19 @@ const Manufacturer = () => {
 
             instance.get(backendURL + `/api/querysr/` + srUUID)
                 .then(res => {
-                    // console.log(res);
-                    const responseObj = JSON.parse(res.data.response)
-                    console.log(responseObj);
-                    console.log("response code is " , res.status);
-                    console.log("response code is " , res);
+                    console.log(res);
+                    let responseObj = ""
+                    if (mysqlBackend) {
+                        responseObj = res.data[0];
+                    } else {
+                        responseObj = JSON.parse(res.data.response)
 
-                    console.log(responseObj.id);
+                    }
+                    // console.log(responseObj);
+                    // console.log("response code is " , res.status);
+                    // console.log("response code is " , res);
+                    //
+                    // console.log(responseObj.id);
 
                     if (res.status === 200) {
                         setPageContent("200");
@@ -817,13 +836,21 @@ const ManufacturerCreate = () => {
         console.log("srUUID is", localStorage.getItem("srUUID"))
         instance.get(backendURL + `/api/querysr/` + localStorage.getItem("srUUID"))
             .then((res) => {
-                const responseObj = JSON.parse(res.data.response);
+                console.log("res", res);
+
+                let responseObj = "";
+
+                if (mysqlBackend) {
+                    responseObj = res.data[0];
+                } else {
+                    responseObj = JSON.parse(res.data.response);
+                }
                 console.log("res data", responseObj);
                 setMetalName(responseObj.metalname);
                 setMetalPurity(responseObj.metalpurity);
                 setSourceName(responseObj.sourcename);
                 setSRUUID(responseObj.id);
-                setCreatedAt(responseObj.createdate);
+                setCreatedAt(responseObj.createdat);
                 setCreatedBy(responseObj.createdby);
             });
 
@@ -1177,11 +1204,18 @@ const ManufacturerPrint = () => {
 
         instance.get(backendURL + `/api/querymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
-                const responseObj = JSON.parse(res.data.response);
-                console.log("res data", responseObj);
+                // console.log("res", res);
+                let responseObj = "";
+
+                if (mysqlBackend) {
+                    responseObj = res.data[0];
+                } else {
+                    responseObj = JSON.parse(res.data.response);
+                }
+                // console.log("res data", responseObj);
                 setItemName(responseObj.itemname);
                 setMIUUID(responseObj.id);
-                setCreatedAt(responseObj.createdate);
+                setCreatedAt(responseObj.createdat);
                 setCreatedBy(responseObj.createdby);
 
             }).catch(error => {
@@ -1192,7 +1226,15 @@ const ManufacturerPrint = () => {
 
         instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
-                const responseArrayObj = JSON.parse(res.data.response);
+                // console.log("res", res);
+                let responseArrayObj = "";
+                if (mysqlBackend) {
+                    responseArrayObj = res.data;
+
+                } else {
+                    responseArrayObj = JSON.parse(res.data.response);
+
+                }
                 // console.log("res data", responseArrayObj);
                 setMetalCompositionArray(responseArrayObj);
 
@@ -1279,7 +1321,7 @@ const ManufacturerPrint = () => {
                     <QRCode
                         size={256}
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        value={miUUID}
+                        value={miUUID.toString()}
                         viewBox={`0 0 256 256`}
                     />
                 </div>
@@ -1287,19 +1329,29 @@ const ManufacturerPrint = () => {
 
                 <div style={{ height: "auto", margin: "0 auto", maxWidth: 256, width: "100%" }}>
 
-                    <h3>Metal Item ID: {miUUID}</h3>
+                    <h3>Metal Item ID: {miUUID.toString()}</h3>
                     <h3>Item Name: {itemname}</h3>
                     {metalcompositionArray.map((mcItem, index) => {
+                        // console.log("mc item", mcItem)
                         // console.log("mc item", mcItem.Record.name);
                         // console.log("mc item", mcItem.Record.percentage);
 
-                        return (
-                          <div key = {index}>
-                          <h3>Material Name: {mcItem.Record.name}</h3>
-                          <h3>Material Percentage: {mcItem.Record.percentage}</h3>
-                          </div>
-
-                    )
+                        if (mysqlBackend) {
+                            return (
+                                <div key = {mcItem.id}>
+                                    <h3>Material Name: {mcItem.name}</h3>
+                                    <h3>Material Percentage: {mcItem.percentage}</h3>
+                                </div>
+                            )
+                        }
+                        else {
+                            return (
+                                <div key = {index}>
+                                    <h3>Material Name: {mcItem.Record.name}</h3>
+                                    <h3>Material Percentage: {mcItem.Record.percentage}</h3>
+                                </div>
+                            )
+                        }
                     })}
                     <h3>Created At: {createdat}</h3>
                     <h3>Created By: {createdby}</h3>
@@ -1671,11 +1723,17 @@ const RecyclingFacNext = () => {
 
         instance.get(backendURL + `/api/querymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
-                const responseObj = JSON.parse(res.data.response);
+                // console.log("res", res);
+                let responseObj = "";
+                if (mysqlBackend) {
+                    responseObj = res.data[0];
+                } else {
+                    responseObj = JSON.parse(res.data.response);
+                }
                 console.log("res data", responseObj);
                 setItemName(responseObj.itemname);
                 setMIUUID(responseObj.id);
-                setCreatedAt(responseObj.createdate);
+                setCreatedAt(responseObj.createdat);
                 setCreatedBy(responseObj.createdby);
 
             }).catch(error => {
@@ -1684,7 +1742,13 @@ const RecyclingFacNext = () => {
 
         instance.get(backendURL + `/api/querymcbymi/` + localStorage.getItem("miUUID"))
             .then((res) => {
-                const responseArrayObj = JSON.parse(res.data.response);
+                let responseArrayObj = "";
+                if (mysqlBackend) {
+                    responseArrayObj = res.data;
+                } else {
+                    responseArrayObj = JSON.parse(res.data.response);
+
+                }
                 // console.log("res data", responseArrayObj);
                 setMetalCompositionArray(responseArrayObj);
 
@@ -1733,13 +1797,24 @@ const RecyclingFacNext = () => {
                         // console.log("mc item", mcItem.Record.name);
                         // console.log("mc item", mcItem.Record.percentage);
 
-                        return (
-                            <div>
-                                <h3>Material Name: {mcItem.Record.name}</h3>
-                                <h3>Material Percentage: {mcItem.Record.percentage}</h3>
-                            </div>
+                        if (mysqlBackend) {
+                            return (
+                                <div key = {mcItem.id}>
+                                    <h3>Material Name: {mcItem.name}</h3>
+                                    <h3>Material Percentage: {mcItem.percentage}</h3>
+                                </div>
 
-                        )
+                            )
+                        } else {
+                            return (
+                                <div key = {index}>
+                                    <h3>Material Name: {mcItem.Record.name}</h3>
+                                    <h3>Material Percentage: {mcItem.Record.percentage}</h3>
+                                </div>
+
+                            )
+                        }
+
                     })}
 
                     <h3>Created At: {createdat}</h3>
