@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 const cors = require('cors');
 const https = require('https');
+const { performance } = require("perf_hooks");
 
 var app = express();
 app.use(bodyParser.json());
@@ -51,6 +52,7 @@ app.get('/api/queryall/:wallet_user', async function (req, res)  {
             return res.status(400).send("no user found");
         }
 
+
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: identityStr, discovery: { enabled: true, asLocalhost: true } });
@@ -61,9 +63,16 @@ app.get('/api/queryall/:wallet_user', async function (req, res)  {
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'Generic');
 
+        var start = performance.now();
+
+
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAll');
         
+        var end = performance.now();
+
+        console.log("Time elapsed to retrieve All SR via fabric: " + (end - start) + "ms");
+
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
         if (result.toString() === "403"){
@@ -177,9 +186,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'SourceRecord');
 
+        var start = performance.now();
+
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAllSourceRecord');
 	console.log("result received from contract");
+
+        var end = performance.now();
+
+        console.log("Time elapsed to retrieve All SR via fabric: " + (end - start) + "ms");
 
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
@@ -223,8 +238,17 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'SourceRecord');
 // Evaluate the specified transaction.
+
+        var start = performance.now();
+
         const result = await contract.evaluateTransaction('querySourceRecord', paramId);
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+
+
+        var end = performance.now();
+
+        console.log("Time elapsed to retrieve single SR via fabric: " + (end - start) + "ms");
+
         res.status(200).json({response: result.toString()});
 } catch (error) {
         const errorStr = error.toString();
@@ -277,6 +301,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
 
+
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'SourceRecord');
 // Submit the specified transaction.
@@ -296,7 +321,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         console.log(date); //  Thu Jan 20 2022 09:48:00
 
         console.log("submitting transaction");
+
+        var start = performance.now();
+
         await contract.submitTransaction('createSourceRecord', srUUID, metalpurity, metalname, sourcename, identityStr, date );
+        
+        var end = performance.now();
+
+        console.log("Time elapsed to create SR via fabric: " + (end - start) + "ms");
+
         console.log('Transaction has been submitted');
         res.status(201).send({text: 'Transaction has been submitted', uuid: srUUID});
 // Disconnect from the gateway.
@@ -341,9 +374,14 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'MetalItem');
 
+        var start = performance.now();
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAllMetalItem');
         console.log("result received from contract");
+
+        var end = performance.now();
+
+        console.log("Time elapsed to receive all MI via fabric: " + (end - start) + "ms");
 
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
@@ -388,8 +426,15 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'MetalItem');
+
+        var start = performance.now();
 // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryMetalItem', paramId);
+
+        var end = performance.now();
+
+        console.log("Time elapsed to receive single MI via fabric: " + (end - start) + "ms");
+
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
 } catch (error) {
@@ -435,12 +480,14 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
         network = await gateway.getNetwork('mychannel');
         contract = network.getContract('mychain', 'MetalComposition');
+
+        var start = performance.now();
+
         let mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
-        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
-        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
-        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
-        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
-        mcResult = await contract.evaluateTransaction('queryMCByMI', paramId);
+
+        var end = performance.now();
+
+        console.log("Time elapsed to query MI And MC via fabric: " + (end - start) + "ms");
 
         console.log(`MC has been evaluated, result is ${mcResult.toString()}`);
 
@@ -512,6 +559,8 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         let metalItemUUID = uuidv4()+"";
         console.log("submitting transaction for metal item with uuid ", metalItemUUID);
 
+        var start = performance.now();
+
         await contract.submitTransaction('createMetalItem', metalItemUUID, sourcerecordid, itemname, identityStr, date);
         console.log('Transaction has been submitted');
 
@@ -531,10 +580,11 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
 
           console.log("submitting transaction for metal composition");
         await contract.submitTransaction('createMetalComposition', uuidv4()+"", item.name, item.percentage, metalItemUUID, identityStr, date);
-       // const mcResult = await contract.evaluateTransaction('queryMCByMI', metalItemUUID);
-        // console.log(`MC has been evaluated, result is ${mcResult.toString()}`);
         });
 
+        var end = performance.now();
+
+        console.log("Time elapsed to add MI via fabric: " + (end - start) + "ms");
 
         console.log("Metal Item Created");
         res.status(201).send({text: "Transaction has been submitted", uuid: metalItemUUID});
@@ -581,9 +631,16 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'MetalComposition');
 
+
+        var start = performance.now();
+
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAllMetalComposition');
         console.log("result received from contract");
+
+        var end = performance.now();
+
+        console.log("Time elapsed to query all MC via fabric: " + (end - start) + "ms");
 
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         res.status(200).json({response: result.toString()});
@@ -626,8 +683,16 @@ const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizatio
         // Get the contract from the network.
         const contract = network.getContract('mychain', 'MetalComposition');
 // Evaluate the specified transaction.
+
+        var start = performance.now();
+
         const result = await contract.evaluateTransaction('queryMCByMI', paramId);
         console.log(`Transaction MC has been evaluated, result is: ${result.toString()}`);
+
+        var end = performance.now();
+
+        console.log("Time elapsed to query MC By MI via fabric: " + (end - start) + "ms");
+
         res.status(201).json({response: result.toString()});
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

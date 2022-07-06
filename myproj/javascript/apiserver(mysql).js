@@ -4,6 +4,7 @@ const { response } = require("express");
 var bodyParser = require('body-parser');
 const cors = require('cors');
 const https = require('https');
+const { performance } = require("perf_hooks");
 
 const path = require('path');
 const fs = require('fs');
@@ -60,6 +61,9 @@ const { v4: uuidv4 } = require('uuid');
 app.get('/api/queryallsr', async function (req, res)  {
     console.log("queryallsr");
 
+
+    var start = performance.now();
+
     connection.query(
     "SELECT * FROM sourcerecord",
     (error, results) => {
@@ -68,6 +72,9 @@ app.get('/api/queryallsr', async function (req, res)  {
             console.log("error", error)
             throw error;
         } else {
+            var end = performance.now();
+            console.log("Time elapsed to query all SR : " + (end - start) + "ms");
+
 
             res.status(200).json(results);
         }
@@ -79,6 +86,9 @@ app.get('/api/querysr/:sr_index', async function (req, res) {
         console.log("query single sr");
 
         paramId = req.params.sr_index;
+
+        var start = performance.now();
+
         connection.query(
         "SELECT * FROM sourcerecord WHERE id = " + paramId,
         (error, results) => {
@@ -88,6 +98,9 @@ app.get('/api/querysr/:sr_index', async function (req, res) {
             throw error;
             res.status(301).json(error);
           } else {
+
+            var end = performance.now();
+            console.log("Time elapsed to query single SR : " + (end - start) + "ms");
             res.status(200).json(results);
           }
         }
@@ -117,6 +130,9 @@ app.post('/api/addsr/', async function (req, res) {
 
         })
 
+        var start = performance.now();
+
+
         connection.query(
         sql,
         [metalpurity, metalname, sourcename, "metalproductionUser", date],
@@ -124,6 +140,10 @@ app.post('/api/addsr/', async function (req, res) {
           if (error) {
             throw error;
           }
+
+            var end = performance.now();
+            console.log("Time elapsed to add single SR : " + (end - start) + "ms");
+
           res.status(201).json(results);
        });
            
@@ -138,6 +158,7 @@ app.post('/api/addsr/', async function (req, res) {
 app.get('/api/queryallmi', async function (req, res)  {
         
     console.log("queryallmi");
+    var start = performance.now();
 
     connection.query(
     "SELECT * FROM metalitem",
@@ -147,6 +168,8 @@ app.get('/api/queryallmi', async function (req, res)  {
             console.log("error", error)
             throw error;
         } else {
+            var end = performance.now();
+            console.log("Time elapsed to query all MI : " + (end - start) + "ms");
 
             res.status(201).json(results);
         }
@@ -159,6 +182,8 @@ app.get('/api/querymi/:mi_index', async function (req, res) {
         console.log("query mi");
         paramId = req.params.mi_index;
 
+        var start = performance.now();
+
         connection.query(
         "SELECT * FROM metalitem WHERE id = " + paramId,
         (error, results) => {
@@ -168,6 +193,8 @@ app.get('/api/querymi/:mi_index', async function (req, res) {
             throw error;
             res.status(301).json(error);
           } else {
+            var end = performance.now();
+            console.log("Time elapsed to query single MI : " + (end - start) + "ms");
             res.status(200).json(results);
           }
         }
@@ -241,6 +268,7 @@ app.post('/api/addmi/', async function (req, res) {
         const metalCompositionArray = req.body.mcarray
         console.log("req body is ", req.body);
 
+
         // console.log("metalCompositionArray is ", metalCompositionArray, itemname, sourcerecordid);
 
         const sql = "Insert into metalitem(itemname,sourcerecordid, createdby, createdat) values (?,?,?,?)";
@@ -254,6 +282,8 @@ app.post('/api/addmi/', async function (req, res) {
                 hour12: false
 
         })
+
+        var start = performance.now();
 
         let metalItemInsertedId = "";
         connection.query(
@@ -294,6 +324,8 @@ app.post('/api/addmi/', async function (req, res) {
 
                 });
 
+                var end = performance.now();
+                console.log("Time elapsed to create MI : " + (end - start) + "ms");
                 res.status(201).send({text: "Transaction has been submitted", uuid: metalItemInsertedId});
 
         }
@@ -318,6 +350,7 @@ app.post('/api/addmi/', async function (req, res) {
 app.get('/api/queryallmc', async function (req, res)  {
 
         console.log("queryallmc");
+    var start = performance.now();
 
     connection.query(
     "SELECT * FROM metalcomposition",
@@ -327,7 +360,8 @@ app.get('/api/queryallmc', async function (req, res)  {
             console.log("error", error)
             throw error;
         } else {
-
+            var end = performance.now();
+            console.log("Time elapsed to query all MC : " + (end - start) + "ms");
             res.status(200).json(results);
         }
     });
@@ -339,6 +373,7 @@ app.get('/api/querymcbymi/:mi_index', async function (req, res) {
         paramId = req.params.mi_index;
         console.log("param", paramId);
 
+        var start = performance.now();
         connection.query(
         "SELECT * FROM metalcomposition WHERE metalitemid = " + paramId,
         (error, results) => {
@@ -348,6 +383,9 @@ app.get('/api/querymcbymi/:mi_index', async function (req, res) {
             throw error;
             res.status(301).json(error);
           } else {
+
+            var end = performance.now();
+            console.log("Time elapsed to query MC by MI : " + (end - start) + "ms");
             res.status(200).json(results);
           }
         }
