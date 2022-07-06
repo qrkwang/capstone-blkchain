@@ -45,8 +45,8 @@ import Write from "./containers/Write";
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `https://192.168.68.122:8081`
-const mysqlBackend = true;
+const backendURL = `https://192.168.68.123:8081`
+const mysqlBackend = false;
 
 const Home = () => {
   let navigate = useNavigate();
