@@ -1404,6 +1404,7 @@ const RecyclingFac = () => {
 
     //Form
     const [miUUID, setmiUUID] = useState("");
+    const [triggerSubmit, setTriggerSubmit] = useState(false);
 
 
     //Modal Dialog
@@ -1617,6 +1618,29 @@ const RecyclingFac = () => {
 
 
     const buttonRef = useRef(null)
+    let constraints = {
+        facingMode: { exact: "environment" }
+    };
+
+    const handleScan = (result, error) => {
+
+
+        if (!!result) {
+            console.log("result", result);
+            setmiUUID(result?.text);
+            setTriggerSubmit(true);
+            // submitButton.current;
+            // this.form.dispatchEvent(
+            //     new Event("submit", { cancelable: true, bubbles: true })
+            // );
+
+        }
+
+        if (!!error) {
+            //Will constantly have error if QR code not shown.
+            // console.log("error", error)
+        }
+    }
 
     return (
         <div
@@ -1637,6 +1661,20 @@ const RecyclingFac = () => {
                     padding: '5px',
                 }}>
                     Scan Metal Item
+
+                </div>
+                <div style={{marginTop:30}}>
+
+
+                    <QrReader
+                        constraints={ constraints }
+                        delay={300}
+                        // onError={handleError}
+                        // onScan={handleScan}
+                        style={{ height: 240, width: 320 }}
+                        onResult={handleScan}
+
+                    />
                 </div>
                 <form
 
