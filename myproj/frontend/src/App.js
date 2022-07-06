@@ -600,7 +600,7 @@ const Manufacturer = () => {
         if (!!result) {
             console.log("result", result);
             setSRUUID(result?.text);
-            setTriggerSubmit(true);
+            buttonRef.current.click();
             // submitButton.current;
             // this.form.dispatchEvent(
             //     new Event("submit", { cancelable: true, bubbles: true })
@@ -1628,7 +1628,7 @@ const RecyclingFac = () => {
         if (!!result) {
             console.log("result", result);
             setmiUUID(result?.text);
-            setTriggerSubmit(true);
+            buttonRef.current.click();
             // submitButton.current;
             // this.form.dispatchEvent(
             //     new Event("submit", { cancelable: true, bubbles: true })
