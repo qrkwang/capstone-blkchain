@@ -45,7 +45,7 @@ import Write from "./containers/Write";
 //Made axios global
 const axios = require("axios"); //use axios for http requests
 const instance = axios.create(); //use this instance of axios for http requests
-const backendURL = `https://192.168.68.123:8081`
+const backendURL = `https://192.168.70.56:8081`
 const mysqlBackend = false;
 
 const Home = () => {
@@ -350,6 +350,7 @@ const MetalProductionPrint = () => {
     });
 
     const onWrite = async(message) => {
+        var start = performance.now();
         console.log("message", message);
         try {
             // if ('NDEFReader' in window) {
@@ -358,7 +359,9 @@ const MetalProductionPrint = () => {
             // This line will avoid showing the native NFC UI reader
             await ndef.scan();
             await ndef.write({records: [{recordType: "text", data: message}]});
+            var end = performance.now();
             alert(`Value Saved!`);
+            console.log("performance time: ", end-start);
             // }
             // else {
             //     console.log("ndef reader not in window");
@@ -507,6 +510,8 @@ const Manufacturer = () => {
                 try {
                     console.log("first thing in scan function");
                     const ndef = new window.NDEFReader();
+                    var start = performance.now();
+                    console.log("start nfc scan", start);
                     await ndef.scan();
 
                     console.log("Scan started successfully.");
@@ -516,6 +521,8 @@ const Manufacturer = () => {
 
                     ndef.onreading = event => {
                         console.log("NDEF message read.");
+                        var end = performance.now();
+                        console.log("reading time", end-start);
                         onReading(event);
                         setActions({
                             scan: 'scanned',
@@ -593,11 +600,20 @@ const Manufacturer = () => {
         setSRUUID("");
 
     };
+    let scanStartTime;
+
+    const handleClick = () => {
+        console.log("clicked");
+        scanStartTime = performance.now();
+        console.log("scanStarttime", scanStartTime);
+    }
 
     const handleScan = (result, error) => {
-
-
         if (!!result) {
+            let end = performance.now();
+            console.log("end", performance.now());
+            console.log("qr code scan time", end - scanStartTime);
+
             console.log("result", result);
             setSRUUID(result?.text);
             buttonRef.current.click();
@@ -752,6 +768,7 @@ const Manufacturer = () => {
 
                 <div className="App-container">
                     <Button onClick={()=>onHandleAction({scan: 'scanning', write: null})} className="btn">Scan</Button>
+                    <Button onClick={()=> handleClick()}>Start Time QR</Button>
                     {/*<Button onClick={()=>onHandleAction({scan: null, write: 'writing'})} className="btn">Write</Button>*/}
                 </div>
                 <ActionsContext.Provider value={actionsValue}>
@@ -2170,29 +2187,46 @@ const ViewTransactionRecords = () => {
                 if (res.status === 200) {
                     // console.log("authenticated true");
                     setAuthenticated(true);
+                    const emptyArray = [];
+                    // setSourceRecords([...emptyArray]); //Reset Array before adding
+                    // setMetalItems([...emptyArray]);//Reset Array before adding
+                    // setMetalCompositions([...emptyArray]);//Reset Array before adding
 
-                    responseObj.forEach((item) => {
+                    console.log("arrays start ", sourceRecords, metalItems, metalCompositions);
+                    let tempArraySR = [];
+                    let tempArrayMI = [];
+                    let tempArrayMC = [];
+
+                    responseObj.forEach((item, index) => {
                         console.log("item ", item.Record);
+                        console.log("index ", index);
 
                         const itemRecordType = item.Record.docType;
 
                         //Store retrieved items in array of json objects
                         if (itemRecordType === "sourcerecord") {
-                            sourceRecords.push(item.Record);
+                            console.log("source record");
+                            tempArraySR.push(item.Record);
                         } else if (itemRecordType === "metalitem") {
-                            metalItems.push(item.Record);
+                            tempArrayMI.push(item.Record);
                         } else if (itemRecordType === "metalcomposition") {
-                            metalCompositions.push(item.Record);
+                            tempArrayMC.push(item.Record);
                         } else {
                             console.log("item is not of any recognized record type");
                         }
 
                     });
 
+                    setSourceRecords([...tempArraySR])
+                    setMetalItems([...tempArrayMI])
+                    setMetalCompositions([...tempArrayMC])
+
+                    console.log("arrays are ", sourceRecords, metalItems, metalCompositions);
+
                 }
             }).catch(error => {
 
-            console.log("error while sending request", error.response.status);
+            console.log("error while sending request", error);
 
             if (error.response.status = "301") {
                 console.log("wallet identity not found");
